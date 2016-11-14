@@ -47,10 +47,10 @@ Setup
 
   3. Install the rpy2 Python library.  
   **For Linux and Mac users:** Enter the following command in the terminal, just like with the previous step: `pip3 install rpy2`  
-  **For Windows users:** Go to <http://www.lfd.uci.edu/~gohlke/pythonlibs/#rpy2> and download one of the rpy2.whl files. Start by trying one of the ones at the end of the list (`rpy2-2.8.3-cp35-cp35m-win32.whl` worked for me). If the following steps don't work with the one you tried, then try another.
+  **For Windows users:** Go to <http://www.lfd.uci.edu/~gohlke/pythonlibs/#rpy2> and download one of the rpy2.whl files. Start by trying one of the ones at the end of the list (`rpy2-2.8.3-cp35-cp35m-win32.whl` worked for me). If the following steps don't work with the one you tried, then try another.  
 
-    * Download the rpy2.whl file, and take note of the directory path where you save it.  
-    * Enter the following command in the command prompt (like in the previous step), substituting the directory path below for the one where you saved the rpy2.whl file:  
+   * Download the rpy2.whl file, and take note of the directory path where you save it.  
+   * Enter the following command in the command prompt (like in the previous step), substituting the directory path below for the one where you saved the rpy2.whl file:  
   `pip install “C:\Users\Joey\Downloads\rpy2-2.8.3-cp35-cp35m-win32.whl”`
 
 
