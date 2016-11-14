@@ -1,11 +1,9 @@
 PFunc
 ===
-
 PFunc is a set of tools for fitting and analyzing function-valued traits. It was designed for quantifying preference functions (hence the name) in biological studies of sexual selection and evolution of mate preferences. PFunc accepts a bivariate dataset composed of stimuli and responses to those stimuli as its input. It then fits cubic splines to these data using the gam function in R, and it displays the curves, along with several useful measurements of the shape of the curve. Users have several options for adjusting the curves and the tools used to measure the curves, and for outputting results for further analysis.
 
 Table of Contents
 ---
-
 1. Files
 2. Setup
 3. Usage
@@ -27,7 +25,6 @@ Files
 
 Setup
 ---
-
 #### 1. Install and set up R  
   1. Visit <https://cran.r-project.org/> and follow the links to download the latest version of R for your operating system. Install R as you would a normal program.  
   **Note for Windows users:** The setup wizard will give you the option of installing the 32-bit files or the 64-bit files. Install both.  
@@ -51,21 +48,39 @@ Setup
 
    * Download the rpy2.whl file, and take note of the directory path where you save it.  
    * Enter the following command in the command prompt (like in the previous step), substituting the directory path below for the one where you saved the rpy2.whl file:  
-  `pip install “C:\Users\Joey\Downloads\rpy2-2.8.3-cp35-cp35m-win32.whl”`
-
+  `pip install "C:\Users\joey\Downloads\rpy2-2.8.3-cp35-cp35m-win32.whl"`
 
 Usage
 ---
-#### Data input  
+Below is a bare-bones overview of using PFunc. For more details on usage as well as general theory underlying the study of preference functions, check out our paper [add citation when paper is published].
+
+### Data input  
 PFunc is expecting data with two main components: a set of **stimuli** (which are plotted along the *x*-axis) and a set of **responses** to those stimulus values (which are plotted on the *y*-axis).
 
 You have the option of formatting your data either in a **horizontal** layout (as in the `ExampleData_Horizontal.csv` file) or a **vertical** layout (as in the `ExampleData_Vertical.csv` file).
 
 Regardless of which layout option you choose, you must save your data as a **.csv** file. PFunc does not accept other file formats.
 
-#### Running the PFunc GUI
+### Running the PFunc GUI  
+#### Startup  
+You have several different options for running PFunc. Make sure that `PFunc_GUI.py` and `PFunc_Rcode.r` are together in the same directory. If you encounter an error, see the Troubleshooting section below.
+ * **Option 1: Run PFunc through IDLE**  
+ The most straightforward way to run PFunc is through IDLE. Right-click (or the equivalent on a Mac) on the `PFunc_GUI.py` file, and choose to "Open With..." IDLE (or "Edit With..." on Windows). This will start up IDLE with the code for PFunc displayed in a window. Click on the window of colorful code to make sure it is the current active window, and then run the code either by pressing F5 or by clicking Run > Run Module in the menu at the top bar.
+ * **Option 2: Run PFunc from the command line**  
+ Take note of the directory where PFunc is saved. Open up an instance of your terminal (command prompt in Windows) and navigate to the PFunc directory using the `cd` command.  
+ Examples: `cd "C:\Users\joey\PFunc"` in Windows; `cd "/home/joey/PFunc"` in Linux; `cd "/Users/joey/PFunc"` in Mac OS X.  
+ Then type this command for Mac or Linux: `python3 PFunc_GUI.py`, or this command for Windows: `python PFunc_GUI.py`.
+ * **Troubleshooting**  
+ You might encounter an error while trying to run PFunc if rpy2 has trouble finding R on your computer. One sign of this error is if the error message mentions R_HOME or PATH. To solve this, you'll have to find R on your computer and follow the instructions in the `PFuncPath.txt` file that accompanies this program.
 
-#### Running PFunc from the R command line
+#### The Interface  
+#### Settings  
+#### Output  
+
+### Running PFunc from the R command line
+#### Startup
+#### Arguments of PFunc
+#### Examples
 
 Troubleshooting
 ---
