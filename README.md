@@ -8,14 +8,11 @@ Table of Contents
 
 1. Files
 2. Setup
- * Linux or Mac OS X
- * Windows
 3. Usage
-  * Running the PFunc GUI
-  * Running PFunc from the R command line
-4. Acknowledgements
-5. License
-
+4. Troubleshooting
+5. Acknowledgements
+6. Contact
+7. License
 
 Files
 ---
@@ -30,54 +27,61 @@ Files
 
 Setup
 ---
-#### Linux or Mac OS X
-1. Install and set up R  
-  1. Visit <https://cran.r-project.org/> and follow the links to download the latest version of R for your operating system. Install R as you would a normal program. Note for Linux users, you may instead install R from the command line.  
-  2. Install the mgcv package in R by opening R and entering the following command: `install.packages("mgcv")`. You will be prompted to select a mirror from which to download the package. Any option will work, but it is typically best to select the option closest to your location. Follow any instructions R gives you for installing the package.  
-2. Install and set up Python  
-  1. Visit <https://www.python.org/> and follow the links to download the latest version of Python 3.x for your operating system. Install python as you would a normal program. Note for Linux users, you may instead install Python from the command line.  
-  2. Install the necessary Python libraries. Open up the terminal (if you are not sure how, run a search for "terminal" on your computer. Alternatively, Mac users will find a link to the terminal in their Applications > Utilities folder). Enter the following commands:  
-    `pip3 install rpy2`  
-    `pip3 install matplotlib`  
-  Follow any instructions that either one gives you to complete the setup.
-3. Running PFunc
 
-
-#### All users
-1. Install and set up R  
+#### 1. Install and set up R  
   1. Visit <https://cran.r-project.org/> and follow the links to download the latest version of R for your operating system. Install R as you would a normal program.  
   **Note for Windows users:** The setup wizard will give you the option of installing the 32-bit files or the 64-bit files. Install both.  
   **Note for Linux users:** You may instead install R from the command line.  
-  2. Install the mgcv package in R by opening R and entering the following command: `install.packages("mgcv")`. You will be prompted to select a mirror from which to download the package. Any option will work, but it is typically best to select the option closest to your location. Follow any instructions R gives you for installing the package.  
-2. Install and set up Python  
+
+  2. Install the mgcv package in R by opening R and entering the following command: `install.packages("mgcv")`. You will be prompted to select a mirror from which to download the package. Select an option that is relatively close to your location. Follow any instructions R gives you for installing the package.  
+
+#### 2. Install and set up Python  
   1. Visit <https://www.python.org/> and follow the links to download the latest version of Python 3.x for your operating system. Install python as you would a normal program.  
   **Note for Windows users:** the first screen of the installation wizard will ask if you want to add Python to PATH. Make sure to select this option.  
   **Note for Linux users:** you may instead install Python from the command line.  
-  2. Install the matplotlib Python library.  
-  Open up the terminal (if you are not sure how, run a search for "terminal" or "command prompt" on your computer). Enter the following command:  
-    `pip3 install matplotlib`  
+
+  2. Install the matplotlib Python library. To do this, open up the terminal (if you are not sure how, run a search for "terminal" or "command prompt" on your computer).  
+  **For Linux and Mac users:** enter this command `pip3 install matplotlib`  
+  **For Windows users:** enter this command `pip install matplotlib`  
   Follow any instructions to complete the setup.
+
   3. Install the rpy2 Python library.  
-  **For Linux and Mac users:** Enter the following command in the terminal, just like with the previous step:  
-  `pip3 install rpy2`  
+  **For Linux and Mac users:** Enter the following command in the terminal, just like with the previous step: `pip3 install rpy2`  
   **For Windows users:** Go to <http://www.lfd.uci.edu/~gohlke/pythonlibs/#rpy2> and download one of the rpy2.whl files. Start by trying one of the ones at the end of the list (`rpy2-2.8.3-cp35-cp35m-win32.whl` worked for me). If the following steps don't work with the one you tried, then try another.  
-  * Download the rpy2.whl file, and take note of the directory path where you save it.
-3. Running PFunc
-
-
-#### Windows
+    * Download the rpy2.whl file, and take note of the directory path where you save it.  
+    * Enter the following command in the command prompt (like in the previous step), substituting the directory path below for the one where you saved the rpy2.whl file:  
+  `pip install “C:\Users\Joey\Downloads\rpy2-2.8.3-cp35-cp35m-win32.whl”`
 
 
 Usage
 ---
+#### Data input  
+PFunc is expecting data with two main components: a set of **stimuli** (which are plotted along the *x*-axis) and a set of **responses** to those stimulus values (which are plotted on the *y*-axis).
+
+You have the option of formatting your data either in a **horizontal** layout (as in the `ExampleData_Horizontal.csv` file) or a **vertical** layout (as in the `ExampleData_Vertical.csv` file).
+
+Regardless of which layout option you choose, you must save your data as a **.csv** file. PFunc does not accept other file formats.
+
+#### Running the PFunc GUI
+
+#### Running PFunc from the R command line
+
+Troubleshooting
+---
+
 
 Acknowledgements
 ---
 Many thanks to Rafael Rodriguez, Kasey Fowler-Finn, Gerlinde Hoebel, David Gray, Darren Rebar, and Michael Reichert for their testing and feedback during development.
 
+Contact
+---
+For comments or questions, contact Joey Kilmer at jtkilmer@uwm.edu  
+Get the latest version of PFunc at <https://github.com/Joccalor/PFunc>
+
 License
 ---
-Copyright 2016 Joseph Kilmer
+Copyright (C) 2016 Joseph Kilmer
 
 PFunc is distributed under the GNU General Public License v3. A full copy of the license is available in the accompanying file called COPYING.txt.
 
