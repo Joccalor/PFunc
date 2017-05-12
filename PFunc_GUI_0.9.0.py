@@ -205,6 +205,18 @@ class PrefFunc():
         new_sp_val = round(10 ** (round_log_sp_val + by), 6)
         return str(new_sp_val)
 
+    def update_peak(self):
+        '''Update just the peak of the preference function, without running the
+        whole PFunc function in R again.
+        '''
+        return
+
+    def update_tolerance(self):
+        '''Update just the tolerance of the preference function, without
+        running the whole PFunc function in R again.
+        '''
+        return
+
 
 class GraphArea(Frame):
     '''Contains everything in the main viewing window of PFunc, including
