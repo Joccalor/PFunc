@@ -1,0 +1,14 @@
+custom_path=0
+# If PFunc is having trouble finding R or R_HOME, then you need to find
+# the correct directory where R is installed on your computer. Once you do,
+# paste the full directory path after the equals sign above.
+
+# Windows users should use two backslashes between steps in the path, like:
+# custom_path=C:\\Program Files\\R\\R-3.3.1
+
+# Mac users and Linux users should use single forward slashes, like:
+# custom_path=/Library/Frameworks/R.framework/Resources
+# or
+# custom_path=/usr/bin/
+
+# Restore to default by setting custom_path=0
