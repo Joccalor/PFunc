@@ -2128,6 +2128,9 @@ class MainApp():
         self.loc_peak.set(0)
         self.peak_min.set('min')
         self.peak_max.set('max')
+        if r("InCheck('min.stim', objects())")[0]:
+            self.peak_min.set(r("min.stim")[0])
+            self.peak_max.set(r("max.stim")[0])
         self.strength_mode.set('Height-Dependent')
         self.sp_lim.set(1)
         self.sp_min.set('0.05')
@@ -2314,17 +2317,18 @@ class MainApp():
         if self.graph_zone.num_pages > 0:
             for i in self.individual_dict:
                 if self.individual_dict[i].sp_status == 'magenta':
-                    sp_lim_on = (self.sp_lim.get() == 1)
-                    sp_too_small = (
-                        self.individual_dict[i].smoothing_value.get()
-                        < self.sp_min.get())
-                    sp_too_big = (
-                        self.individual_dict[i].smoothing_value.get()
-                        > self.sp_max.get())
-                    if sp_lim_on and (sp_too_small or sp_too_big):
-                        self.individual_dict[i].reset_sp()
-                    elif not sp_lim_on:
-                        self.individual_dict[i].reset_sp()
+                    # sp_lim_on = (self.sp_lim.get() == 1)
+                    # sp_too_small = (
+                    #     self.individual_dict[i].smoothing_value.get()
+                    #     < self.sp_min.get())
+                    # sp_too_big = (
+                    #     self.individual_dict[i].smoothing_value.get()
+                    #     > self.sp_max.get())
+                    # if sp_lim_on and (sp_too_small or sp_too_big):
+                    #     self.individual_dict[i].reset_sp()
+                    # elif not sp_lim_on:
+                    #     self.individual_dict[i].reset_sp()
+                    self.individual_dict[i].reset_sp()
             self.update_summary(self.current_col.get())
             if self.graph_zone.view == 'mini' and self.current_col.get() != 0:
                 self.graph_zone.select_mini_graph(self.graph_zone.current_slot,
