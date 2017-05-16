@@ -1,4 +1,3 @@
-
 # 1 Copyright
 #
 # This file is part of PFunc. PFunc provides a set of simple tools for users
@@ -51,7 +50,7 @@ PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
                 max.y = 0, pdf.row = 4, pdf.col = 3,
                 graph.points = TRUE, graph.peak = TRUE, graph.tol = TRUE,
                 graph.sp = FALSE, graph.se = FALSE,
-                drop = 1/3, tol.mode = "norm", tol.floor = 0,
+                drop = 1/3, tol.mode = "broad", tol.floor = 0,
                 n.predictions = 0, ghost = FALSE, allfromsplines = TRUE,
                 forgui = FALSE) {
   # This is the primary function to call. All others below are secondary.
@@ -152,7 +151,7 @@ PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
         final.tol <- tolerance.bundle$strict.tolerance
       }
       else {
-        final.tol <- tolerance.bundle$full.tolerance
+        final.tol <- tolerance.bundle$broad.tolerance
       }
 
       output[output.row, 2:ncol(output)] <- c(peak.bundle$peak.preference,
@@ -318,7 +317,7 @@ Peak <- function(input.stimuli, preference.function, peak.within, is.flat) {
   inner.min.index <- max(which(abs(predicting.stimuli - inner.min) ==
                          min(abs(predicting.stimuli - inner.min))))
   predicted.response1 <- predict.gam(preference.function, predicting.stimuli,
-    se.fit = TRUE)
+                                     se.fit = TRUE)
 
   if (is.flat == FALSE) {
     peak.response <- max(
@@ -374,15 +373,15 @@ Tolerance <- function(drop, peak.bundle, is.flat, preference.function,
   # preference function.
   submerged <- FALSE
   if(is.flat == TRUE){
-    full.tol = peak.bundle$max.stim - peak.bundle$min.stim
-    strict.tol = full.tol
+    broad.tol = peak.bundle$max.stim - peak.bundle$min.stim
+    strict.tol = broad.tol
     tolerance.height = mean(peak.bundle$predicted.response) * (1 - drop)
     cross.points = c(peak.bundle$min.stim, peak.bundle$max.stim)
     strict.lo = peak.bundle$min.stim
     strict.hi = peak.bundle$max.stim
   } else if(tol.floor >= peak.bundle$peak.response){
       submerged <- TRUE
-      full.tol <- 0
+      broad.tol <- 0
       strict.tol <- 0
       tolerance.height <- tol.floor
       cross.points <- vector()
@@ -443,16 +442,16 @@ Tolerance <- function(drop, peak.bundle, is.flat, preference.function,
     }
     strict.tol <- strict.hi - strict.lo
     if (length(cross.points) == 2) {
-      full.tol <- strict.tol
+      broad.tol <- strict.tol
     } else {
       tol.bits <- vector('numeric', 0)
       for (i in seq(1, (length(cross.points) - 1), by = 2)) {
         tol.bits <- append(tol.bits, (cross.points[i + 1] - cross.points[i]))
-        full.tol <- sum(tol.bits)
+        broad.tol <- sum(tol.bits)
       }
     }
   }
-  tolerance.bundle <- list(full.tolerance = full.tol,
+  tolerance.bundle <- list(broad.tolerance = broad.tol,
                            strict.tolerance = strict.tol,
                            tolerance.height = tolerance.height,
                            cross.points = cross.points,
@@ -723,7 +722,7 @@ Diagnose <- function(input.data, diagnose.col, diagnose.sp, peak.within, drop,
         lines(c(all.points[t], all.points[t + 1]),
               c(tolerance.height, tolerance.height), col = "blue")
       }
-      final.tol <- tolerance.bundle$full.tolerance
+      final.tol <- tolerance.bundle$broad.tolerance
     }
 
     return(c(paste("Peak Preference: ", round(peak.preference, 2), sep = ""),
@@ -735,27 +734,31 @@ Diagnose <- function(input.data, diagnose.col, diagnose.sp, peak.within, drop,
       paste("Smoothing Parameter: ", round(smoothing.parameter, 5), sep = "")))
 
   } else if (forgui == TRUE) {
-    if (tol.mode == 'strict') {
-      final.tol <- tolerance.bundle$strict.tolerance
-      tol.points <- tolerance.bundle$strict.points
-    } else if (tol.mode == 'norm' | tol.mode == 'broad') {
-      final.tol <- tolerance.bundle$full.tolerance
-      tol.points <- tolerance.bundle$cross.points
-    }
+    # if (tol.mode == 'strict') {
+    #   final.tol <- tolerance.bundle$strict.tolerance
+    #   tol.points <- tolerance.bundle$strict.points
+    # } else if (tol.mode == 'broad' | tol.mode == 'broad') {
+    #   final.tol <- tolerance.bundle$broad.tolerance
+    #   tol.points <- tolerance.bundle$cross.points
+    # }
     gui.bundle <- list(data.x = input.data[, 1],
                        data.y = input.data[, diagnose.col],
+                       gam.object = preference.function,
                        stimulus = predicting.stimuli[, 1],
                        response = predicted.response,
                        se = predicted.se,
                        peak.preference = peak.preference,
                        peak.response = round(peak.response, 3),
-                       final.tol = final.tol,
-                       tol.points = tol.points,
+                       broad.tol = tolerance.bundle$broad.tolerance,
+                       strict.tol = tolerance.bundle$strict.tolerance,
+                       broad.tol.points = tolerance.bundle$cross.points,
+                       strict.tol.points = tolerance.bundle$strict.points,
                        tol.height = tolerance.bundle$tolerance.height,
                        hd.strength = hd.strength,
                        hi.strength = hi.strength,
                        responsiveness = responsiveness,
-                       smoothing.parameter = smoothing.parameter)
+                       smoothing.parameter = smoothing.parameter,
+                       is.flat = is.flat)
     return(gui.bundle)
   }
 }
@@ -773,6 +776,8 @@ print("PFunc version 0.9.0 (2017-05-12) successfully loaded.")
 
 
 # 5 Changelog
+#   170515: - Renamed full tolerance and norm tolerance to broad tolerance
+#   170512: - Added gam.object and is.flat to GUI output bundle
 #   170509: - Cleaned up code and added comments
 #   170508: - Updated wording in the output of the Diagnose function
 #           - Changed all references to peak stimulus to peak preference

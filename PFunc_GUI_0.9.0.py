@@ -25,6 +25,8 @@ from tkinter import filedialog
 from tkinter import messagebox
 import tkinter.font as tkFont
 
+import datetime  ###
+
 from sys import argv
 from sys import platform
 from os import getcwd
@@ -131,6 +133,7 @@ class PrefFunc():
         self.populate_stats()
 
     def generate_spline(self):
+        time1 = datetime.now()  ####
         if self.tol_type.get() == 'relative':
             instance_drop = self.tol_drop.get()
             instance_floor = self.tol_floor.get()
@@ -157,6 +160,9 @@ class PrefFunc():
                      instance_peak, instance_drop, self.tol_mode.get(),
                      self.sp_lim.get(), self.sp_min.get(), self.sp_max.get(),
                      instance_floor))
+        r("master.gam.list[[%s]] <- curr.func$gam.object" % self.id_number)
+        time2 = datetime.now()  ####
+        #print("Time to generate a new spline: ", str(time2 - time1))
 
     def populate_stats(self):
         self.spline_x = r('curr.func$stimulus')
@@ -164,8 +170,10 @@ class PrefFunc():
         self.se = r('curr.func$se')
         self.peak_pref = ('%s' % r('curr.func$peak.preference')).split()[1]
         self.peak_resp = ('%s' % r('curr.func$peak.response')).split()[1]
-        self.tolerance = ('%s' % r('curr.func$final.tol')).split()[1]
-        self.tolerance_points = r('curr.func$tol.points')
+        self.broad_tolerance = ('%s' % r('curr.func$broad.tol')).split()[1]
+        self.strict_tolerance = ('%s' % r('curr.func$strict.tol')).split()[1]
+        self.broad_tolerance_points = r('curr.func$broad.tol.points')
+        self.strict_tolerance_points = r('curr.func$strict.tol.points')
         self.tolerance_height = ('%s' % r('curr.func$tol.height')).split()[1]
         self.hd_strength = ('%s' % r('curr.func$hd.strength')).split()[1]
         self.hi_strength = ('%s' % r('curr.func$hi.strength')).split()[1]
@@ -173,6 +181,7 @@ class PrefFunc():
         self.axes_ranges = r('range.bundle')  # min.x, max.x, min.y, max.y
         self.smoothing_value.set((
             '%s' % r('curr.func$smoothing.parameter')).split()[1])
+        self.is_flat = r('curr.func$is.flat')
 
     def stiffen(self):
         '''Increase the smoothing parameter'''
@@ -209,13 +218,86 @@ class PrefFunc():
         '''Update just the peak of the preference function, without running the
         whole PFunc function in R again.
         '''
-        return
+        time1 = datetime.now()  ####
+        # print("updating peak...")###
+        # print("peak pref: %s" % self.peak_pref)###
+        # print("peak resp: %s" % self.peak_resp)###
+        if self.loc_peak.get() == 0:
+            instance_peak = '1'
+        elif self.loc_peak.get() == 1:
+            instance_peak = 'c(%s, %s)' % (self.peak_min.get(),
+                                           self.peak_max.get())
+        peak_bundle = r('''Peak(input.stimuli = %s,
+                                preference.function = master.gam.list[[%s]],
+                                peak.within = %s,
+                                is.flat = %s)
+                        ''' % (self.data_x.r_repr(),
+                               self.id_number,
+                               instance_peak,
+                               self.is_flat.r_repr()))
+        self.peak_pref = ('%s' % r('%s$peak.preference'
+                                   % peak_bundle.r_repr())).split()[1]
+        self.peak_resp = ('%s' % r('%s$peak.response'
+                                   % peak_bundle.r_repr())).split()[1]
+        # TODO incoroprate strict tolerance points as well
+        # print("peak updated!")###
+        # print("peak pref: %s" % self.peak_pref)###
+        # print("peak resp: %s" % self.peak_resp)###
+        # print("---")
+        time2 = datetime.now()  ####
+        # print("Time to update a peak: ", str(time2 - time1))
 
     def update_tolerance(self):
         '''Update just the tolerance of the preference function, without
         running the whole PFunc function in R again.
         '''
-        return
+        time1 = datetime.now()  ####
+        # print("updating tolerance...")###
+        # print("tolerance: %s" % self.tolerance)###
+        if self.tol_type.get() == 'relative':
+            instance_drop = self.tol_drop.get()
+            instance_floor = self.tol_floor.get()
+        elif self.tol_type.get() == 'absolute':
+            instance_drop = 1
+            instance_floor = self.tol_absolute.get()
+        r('''temp.stim.values <- data.frame(stimulus = %s)
+             temp.peak.bundle <- list(peak.preference = %s,
+                                      peak.response = %s,
+                                      predicting.stimuli = temp.stim.values,
+                                      predicted.response = as.vector(%s),
+                                      max.stim = max(temp.stim.values),
+                                      min.stim = min(temp.stim.values))
+          ''' % (self.spline_x.r_repr(),
+                 self.peak_pref,
+                 self.peak_resp,
+                 self.spline_y.r_repr()
+                )
+        )
+        tolerance_bundle = r('''Tolerance(drop = %s,
+                                          peak.bundle = temp.peak.bundle,
+                                          is.flat = %s,
+                                          preference.function =
+                                            master.gam.list[[%s]],
+                                          tol.floor = %s)
+                             ''' % (instance_drop,
+                                    self.is_flat.r_repr(),
+                                    self.id_number,
+                                    instance_floor))
+        self.broad_tolerance = ('%s' % r('%s$broad.tolerance'
+                                   % tolerance_bundle.r_repr())).split()[1]
+        self.strict_tolerance = ('%s' % r('%s$strict.tolerance'
+                                   % tolerance_bundle.r_repr())).split()[1]
+        self.broad_tolerance_points = r('%s$cross.points'
+                                   % tolerance_bundle.r_repr())
+        self.strict_tolerance_points = r('%s$strict.points'
+                                   % tolerance_bundle.r_repr())
+        self.tolerance_height = ('%s' % r('%s$tolerance.height'
+                                   % tolerance_bundle.r_repr())).split()[1]
+        # print("tolerance updated!")###
+        # print("tolerance: %s" % self.tolerance)###
+        # print("---")
+        time2 = datetime.now()  ####
+        # print("Time to update a tolerance: ", str(time2 - time1))
 
 
 class GraphArea(Frame):
@@ -227,7 +309,7 @@ class GraphArea(Frame):
     '''
     def __init__(self, individual_dict, current_col, current_page,
                  view_names, view_pts, view_pandtol, view_spline, view_se,
-                 input_font, parent=None, **kw):
+                 tol_mode, input_font, parent=None, **kw):
         Frame.__init__(self, parent, relief=SUNKEN, bd=1)
         self.current_col = current_col
         self.recent_col = IntVar()
@@ -237,6 +319,7 @@ class GraphArea(Frame):
         self.view_pandtol = view_pandtol
         self.view_spline = view_spline
         self.view_se = view_se
+        self.tol_mode = tol_mode
         self.input_font = input_font
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -319,7 +402,9 @@ class GraphArea(Frame):
         counter = 1
         for i in self.page_dict[page]:
             individual = self.individual_dict[i]
-            individual.update()  #_# Needs to go
+            #individual.update_peak()
+            #individual.update_tolerance()
+            #individual.update()  ### Needs to go
             if int(matplotlib.__version__.split('.')[0]) >= 2:
                 self.slot_dict[counter] = self.fig.add_subplot(
                     '33%d' % counter, facecolor=individual.background)
@@ -356,7 +441,7 @@ class GraphArea(Frame):
                                                self.mega_graph_click)
         self.fig_canvas.get_tk_widget().grid(row=0, column=0, sticky=NSEW)
         individual = self.individual_dict[column]
-        individual.update()
+        #individual.update() ###
         if int(matplotlib.__version__.split('.')[0]) >= 2:
             slot = self.fig.add_subplot('111', facecolor=individual.background)
         else:
@@ -517,11 +602,20 @@ class GraphArea(Frame):
                 slot.plot([individual.peak_pref, individual.peak_pref],
                           [individual.axes_ranges[2], individual.peak_resp],
                           'r-')
-            for t in range(0, len(individual.tolerance_points), 2):
-                slot.plot([individual.tolerance_points[t],
-                           individual.tolerance_points[t+1]],
+            if self.tol_mode.get() == 'broad':
+                current_tolerance_points = individual.broad_tolerance_points
+            elif self.tol_mode.get() == 'strict':
+                current_tolerance_points = individual.strict_tolerance_points
+            for t in range(0, len(current_tolerance_points), 2):
+                slot.plot([current_tolerance_points[t],
+                           current_tolerance_points[t+1]],
                           [individual.tolerance_height,
                            individual.tolerance_height], 'b-')
+            # for t in range(0, len(individual.tolerance_points), 2):
+            #     slot.plot([individual.tolerance_points[t],
+            #                individual.tolerance_points[t+1]],
+            #               [individual.tolerance_height,
+            #                individual.tolerance_height], 'b-')
         if self.view_spline.get() == 1:
             slot.plot(individual.spline_x, individual.spline_y, 'k-')
         if self.view_se.get() == 1:
@@ -773,7 +867,8 @@ class SummaryBox(LabelFrame):
         self.summary_window.insert(END, self.summary_text)
         self.summary_window.configure(state=DISABLED)
 
-    def update_summary(self, individual=None, strength_mode=None):
+    def update_summary(self, individual=None,
+                       strength_mode=None, tol_mode=None):
         self.summary_window.configure(state=NORMAL)
         self.summary_window.delete(1.17, '1.end')
         self.summary_window.delete(2.13, '2.end')
@@ -784,7 +879,12 @@ class SummaryBox(LabelFrame):
         if individual is not None:
             self.summary_window.insert(1.17, individual.peak_pref)
             self.summary_window.insert(2.13, individual.peak_resp)
-            self.summary_window.insert(3.11, individual.tolerance)
+            # self.summary_window.insert(3.11, individual.tolerance)
+            if tol_mode.get() == 'broad':
+                self.summary_window.insert('3.11', individual.broad_tolerance)
+            elif tol_mode.get() == 'strict':
+                self.summary_window.insert('3.11', individual.strict_tolerance)
+
             if strength_mode.get() == 'Height-Dependent':
                 self.summary_window.insert('4.10', individual.hd_strength)
             elif strength_mode.get() == 'Height-Independent':
@@ -927,10 +1027,14 @@ class LocalPeakBox(LabelFrame):
             self.peak_btwn_ent1.configure(state=DISABLED)
             self.peak_btwn_ent2.configure(state=DISABLED)
         if andupdate:
-            self.event_generate('<<update_all_graphs>>')
+            #self.event_generate('<<update_all_graphs>>')
+            self.event_generate('<<update_all_peaks>>')
+            self.event_generate('<<update_summary>>')
 
     def enter_peak_btwn(self, event):
-        self.event_generate('<<update_all_graphs>>')
+        #self.event_generate('<<update_all_graphs>>')
+        self.event_generate('<<update_all_peaks>>')
+        self.event_generate('<<update_summary>>')
 
 
 class ToleranceBox(LabelFrame):
@@ -983,12 +1087,13 @@ class ToleranceBox(LabelFrame):
         self.tol_mode_broad = Radiobutton(
             self.tol_mode_zone, text='Broad', variable=self.tol_mode,
             value='broad',
-            command=lambda: self.event_generate('<<update_all_graphs>>'))
+            command=self.change_tol_mode)
+            # command=lambda: self.event_generate('<<update_all_graphs>>'))
         self.tol_mode_broad.grid(row=0, column=1, sticky=W)
         self.tol_mode_stct = Radiobutton(
             self.tol_mode_zone, text='Strict', variable=tol_mode,
             value='strict',
-            command=lambda: self.event_generate('<<update_all_graphs>>'))
+            command=self.change_tol_mode)
         self.tol_mode_stct.grid(row=0, column=2, sticky=W)
         self.tol_rel_ent.bind('<Return>', self.enter_tol_setting)
         self.tol_floor_ent.bind('<Return>', self.enter_tol_setting)
@@ -1011,10 +1116,16 @@ class ToleranceBox(LabelFrame):
             self.tol_abs_lab.configure(state=NORMAL)
             self.tol_abs_ent.configure(state=NORMAL)
         if andupdate:
-            self.event_generate('<<update_all_graphs>>')
+            #self.event_generate('<<update_all_graphs>>')
+            self.event_generate('<<update_all_tolerances>>')
             self.event_generate('<<update_summary>>')
 
     def enter_tol_setting(self, event):
+        #self.event_generate('<<update_all_graphs>>')
+        self.event_generate('<<update_all_tolerances>>')
+        self.event_generate('<<update_summary>>')
+
+    def change_tol_mode(self):
         self.event_generate('<<update_all_graphs>>')
         self.event_generate('<<update_summary>>')
 
@@ -1088,8 +1199,9 @@ class ControlPanel(Frame):
                                         strength_mode=strength_mode,
                                         heading_font=heading_font, row=7)
 
-    def update_summary(self, individual=None, strength_mode=None):
-        self.summary_box.update_summary(individual, strength_mode)
+    def update_summary(self, individual=None,
+                       strength_mode=None, tol_mode=None):
+        self.summary_box.update_summary(individual, strength_mode, tol_mode)
 
     def activate(self):
         self.smoothing_box.activate()
@@ -1792,6 +1904,7 @@ class MainApp():
                                     self.current_page, self.view_names,
                                     self.view_pts, self.view_pandtol,
                                     self.view_spline, self.view_se,
+                                    self.tol_mode,
                                     self.input_font, parent=self.root)
         self.graph_zone.grid(row=1, column=0, sticky=NSEW)
         self.control_panel = ControlPanel(heading_font=self.heading_font,
@@ -1934,6 +2047,8 @@ class MainApp():
         self.root.bind('<<reset_sp>>', self.reset_sp)
         self.root.bind('<<enter_sp>>', self.enter_sp)
         self.root.bind('<<update_all_graphs>>', self.update_all_graphs)
+        self.root.bind('<<update_all_peaks>>', self.update_all_peaks)
+        self.root.bind('<<update_all_tolerances>>', self.update_all_tolerances)
         self.root.bind('<<update_magenta_graphs>>', self.update_magenta_graphs)
         self.root.bind('<<open_message_log>>', self.open_message_log)
         self.root.bind('<<add_message>>', self.add_message)
@@ -2013,6 +2128,7 @@ class MainApp():
         self.graph_zone.page_dict.clear()
         self.graph_zone.individual_dict.clear()
         self.sp_dict.clear()
+        r("master.gam.list <- list()")
         if self.graph_zone.view != 'welcome':
             self.root.event_generate('<<add_message>>', x=101)
         if event.x == 0:
@@ -2099,7 +2215,9 @@ class MainApp():
         else:
             current_individual = None
         self.control_panel.update_summary(individual=current_individual,
-                                          strength_mode=self.strength_mode)
+                                          strength_mode=self.strength_mode,
+                                          tol_mode=self.tol_mode)
+        print("updated summary") ###
 
     def update_sp(self, event=None):
         if self.current_col.get() != 0:
@@ -2107,11 +2225,13 @@ class MainApp():
                                 self.current_col.get()].smoothing_value.get())
         else:
             self.current_sp.set('')
+        print("updated smoothing parameter") ###
 
     def clear_display(self, event=None):
         self.current_sp.set('')
         self.current_col.set(0)
         self.update_summary(event=None)
+        print("cleared display") ###
 
     def loosen(self, event=None):
         col = self.current_col.get()
@@ -2119,6 +2239,7 @@ class MainApp():
             self.individual_dict[col].loosen()
             self.update_summary(event=None)
             self.graph_zone.update_graph()
+        print("loosen") ###
 
     def stiffen(self, event=None):
         col = self.current_col.get()
@@ -2126,6 +2247,7 @@ class MainApp():
             self.individual_dict[col].stiffen()
             self.update_summary(event=None)
             self.graph_zone.update_graph()
+        print("stiffen") ###
 
     def reset_sp(self, event=None):
         col = self.current_col.get()
@@ -2135,6 +2257,7 @@ class MainApp():
             self.update_summary(event=None)
             self.current_sp.set(
                 self.individual_dict[col].smoothing_value.get())
+        print("reset smoothing parameter") ###
 
     def enter_sp(self, event=None):
         col = self.current_col.get()
@@ -2144,6 +2267,7 @@ class MainApp():
             self.individual_dict[col].sp_status = 'cyan'
             self.graph_zone.update_graph()
             self.update_summary(event=None)
+        print("enter smoothing parameter") ###
 
     def update_all_graphs(self, event=None):
         if self.graph_zone.view == 'mini':
@@ -2151,17 +2275,34 @@ class MainApp():
                                         and_deselect=False)
         elif self.graph_zone.view == 'mega':
             self.graph_zone.mega_graph(self.current_col.get())
+        print("update all graphs") ###
+
+    def update_all_peaks(self, event=None):
+        for i in self.individual_dict:
+            self.individual_dict[i].update_peak()
+        self.update_all_graphs()
+        print("update all peaks") ###
+
+    def update_all_tolerances(self, event=None):
+        for i in self.individual_dict:
+            self.individual_dict[i].update_tolerance()
+        self.update_all_graphs()
+        print("update all tolerances") ###
 
     def update_magenta_graphs(self, event=None):
         if self.graph_zone.num_pages > 0:
+            for i in self.individual_dict:
+                if self.individual_dict[i].sp_status == 'magenta':
+                    self.individual_dict[i].reset_sp()
             # for i in self.graph_zone.page_dict[self.current_page.get()]:
             #     if self.individual_dict[i].sp_status == 'magenta':
             #         self.individual_dict[i].reset_sp()
-            #         self.update_summary(self.current_col.get())
+            self.update_summary(self.current_col.get())
             if self.graph_zone.view == 'mini' and self.current_col.get() != 0:
                 self.graph_zone.select_mini_graph(self.graph_zone.current_slot,
                                                   and_deselect=False)
             self.update_all_graphs()
+        print("update magenta graphs") ###
 
     def open_message_log(self, event=None):
         self.logWindow = PFuncMessages(self.root, self.messages)
@@ -2398,6 +2539,12 @@ class MainApp():
     def draw_one_graph_in_r(self, individual):
         individual.update()
         isSubmerged = individual.tolerance_height > individual.peak_resp
+        if self.tol_mode.get() == 'broad':
+            current_tolerance_points = (
+                individual.broad_tolerance_points.r_repr())
+        elif self.tol_mode.get() == 'strict':
+            current_tolerance_points = (
+                individual.strict_tolerance_points.r_repr())
         r('''individual_data <- %s
              peak_bundle <- list(peak.response = %s,
                                  peak.preference = %s,
@@ -2418,7 +2565,8 @@ class MainApp():
                individual.spline_y.r_repr(),
                individual.se.r_repr(),
                individual.tolerance_height,
-               individual.tolerance_points.r_repr(),
+               current_tolerance_points,
+               #individual.tolerance_points.r_repr(),
                str(isSubmerged).upper(),
                #individual.data_y.r_repr()
                ))
@@ -2472,6 +2620,10 @@ class MainApp():
             for i in self.individual_dict:
                 tempind = self.individual_dict[i]
                 tempind.update()
+                if self.tol_mode.get() == 'broad':
+                    temp_tolerance = self.individual_dict[i].broad_tolerance
+                elif self.tol_mode.get() == 'strict':
+                    temp_tolerance = self.individual_dict[i].strict_tolerance
                 if self.strength_mode.get() == 'Height-Dependent':
                     temp_strength = tempind.hd_strength
                 elif self.strength_mode.get() == 'Height-Independent':
@@ -2480,7 +2632,7 @@ class MainApp():
                      output[%s, 2:7] <- c(%s, %s, %s, %s, %s, %s)
                 ''' % (i, tempind.name, i, tempind.peak_pref,
                        tempind.peak_resp,
-                       tempind.tolerance, temp_strength,
+                       temp_tolerance, temp_strength,
                        tempind.responsiveness, tempind.smoothing_value.get()))
             r("write.csv(output, '%s', row.names = FALSE)" % summfile.name)
             summfile.close()
@@ -2541,7 +2693,12 @@ class MainApp():
             output_tol_table = ''
             for i in range(1, len(self.individual_dict) + 1):
                 individual_name = self.individual_dict[i].name
-                individual_tol_pts = self.individual_dict[i].tolerance_points
+                if self.tol_mode.get() == 'broad':
+                    individual_tol_pts = (
+                        self.individual_dict[i].broad_tolerance_points)
+                elif self.tol_mode.get() == 'strict':
+                    individual_tol_pts = (
+                        self.individual_dict[i].strict_tolerance_points)
                 tol_pts_str = ''
                 for i in individual_tol_pts:
                     tol_pts_str = tol_pts_str + str(i) + ', '
