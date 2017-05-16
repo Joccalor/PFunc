@@ -26,7 +26,7 @@
 # 3 source() and library() statements
 #
 # Read this whole file into R with the following command:
-# source("PFunc_Rcode_0.9.0.R")
+# source("PFunc_RCode.R")
 
 if (!"mgcv" %in% installed.packages()) {
   stop("Please install the package 'mgcv' to use this script.

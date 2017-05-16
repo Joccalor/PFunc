@@ -2026,7 +2026,7 @@ class MainApp():
             current_directory.set(path.dirname(path.realpath(argv[0])))
             current_directory.set(current_directory.get().replace("\\", "/"))
         r("setwd('%s')" % current_directory.get())
-        r("source('PFunc_Rcode_0.9.0.R')")  # R version
+        r("source('PFunc_RCode.R')")
 
     def _setup_file_opt(self):
         self.file_opt = {}
