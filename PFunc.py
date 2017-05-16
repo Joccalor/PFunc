@@ -25,8 +25,6 @@ from tkinter import filedialog
 from tkinter import messagebox
 import tkinter.font as tkFont
 
-import datetime  ###
-
 from sys import argv
 from sys import platform
 from os import getcwd
@@ -133,7 +131,6 @@ class PrefFunc():
         self.populate_stats()
 
     def generate_spline(self):
-        time1 = datetime.now()  ####
         if self.tol_type.get() == 'relative':
             instance_drop = self.tol_drop.get()
             instance_floor = self.tol_floor.get()
@@ -161,8 +158,6 @@ class PrefFunc():
                      self.sp_lim.get(), self.sp_min.get(), self.sp_max.get(),
                      instance_floor))
         r("master.gam.list[[%s]] <- curr.func$gam.object" % self.id_number)
-        time2 = datetime.now()  ####
-        #print("Time to generate a new spline: ", str(time2 - time1))
 
     def populate_stats(self):
         self.spline_x = r('curr.func$stimulus')
@@ -218,10 +213,6 @@ class PrefFunc():
         '''Update just the peak of the preference function, without running the
         whole PFunc function in R again.
         '''
-        # time1 = datetime.now()  ####
-        print("updating peak...")###
-        # print("peak pref: %s" % self.peak_pref)###
-        # print("peak resp: %s" % self.peak_resp)###
         previous_peak = self.peak_pref
         if self.loc_peak.get() == 0:
             instance_peak = '1'
@@ -242,20 +233,11 @@ class PrefFunc():
                                    % peak_bundle.r_repr())).split()[1]
         if self.tol_mode.get() == 'strict' and previous_peak != self.peak_pref:
             self.update_tolerance()
-        # print("peak updated!")###
-        # print("peak pref: %s" % self.peak_pref)###
-        # print("peak resp: %s" % self.peak_resp)###
-        # print("---")
-        # time2 = datetime.now()  ####
-        # print("Time to update a peak: ", str(time2 - time1))
 
     def update_tolerance(self):
         '''Update just the tolerance of the preference function, without
         running the whole PFunc function in R again.
         '''
-        time1 = datetime.now()  ####
-        print("updating tolerance...")###
-        # print("tolerance: %s" % self.tolerance)###
         if self.tol_type.get() == 'relative':
             instance_drop = self.tol_drop.get()
             instance_floor = self.tol_floor.get()
@@ -295,11 +277,6 @@ class PrefFunc():
                                    % tolerance_bundle.r_repr())
         self.tolerance_height = ('%s' % r('%s$tolerance.height'
                                    % tolerance_bundle.r_repr())).split()[1]
-        # print("tolerance updated!")###
-        # print("tolerance: %s" % self.tolerance)###
-        # print("---")
-        time2 = datetime.now()  ####
-        # print("Time to update a tolerance: ", str(time2 - time1))
 
 
 class GraphArea(Frame):
@@ -424,9 +401,6 @@ class GraphArea(Frame):
         counter = 1
         for i in self.page_dict[page]:
             individual = self.individual_dict[i]
-            #individual.update_peak()
-            #individual.update_tolerance()
-            #individual.update()  ### Needs to go
             if int(matplotlib.__version__.split('.')[0]) >= 2:
                 self.slot_dict[counter] = self.fig.add_subplot(
                     '33%d' % counter, facecolor=individual.background)
@@ -463,7 +437,6 @@ class GraphArea(Frame):
                                                self.mega_graph_click)
         self.fig_canvas.get_tk_widget().grid(row=0, column=0, sticky=NSEW)
         individual = self.individual_dict[column]
-        #individual.update() ###
         if int(matplotlib.__version__.split('.')[0]) >= 2:
             slot = self.fig.add_subplot('111', facecolor=individual.background)
         else:
@@ -1912,6 +1885,7 @@ class MainApp():
     '''
     def __init__(self):
         self.root = Tk()
+        self.root.config(cursor='wait')
         self._setup_fonts()
         self._setup_dicts()
         self._setup_variables()
@@ -1959,6 +1933,7 @@ class MainApp():
         except:
             a = 1
         self.root.event_generate('<<add_message>>', x=100)
+        self.root.config(cursor='')
 
     def _setup_fonts(self):
         self.default_font = tkFont.nametofont('TkDefaultFont')
@@ -2247,7 +2222,6 @@ class MainApp():
         self.control_panel.update_summary(individual=current_individual,
                                           strength_mode=self.strength_mode,
                                           tol_mode=self.tol_mode)
-        print("updated summary") ###
 
     def update_sp(self, event=None):
         if self.current_col.get() != 0:
@@ -2255,13 +2229,11 @@ class MainApp():
                                 self.current_col.get()].smoothing_value.get())
         else:
             self.current_sp.set('')
-        print("updated smoothing parameter") ###
 
     def clear_display(self, event=None):
         self.current_sp.set('')
         self.current_col.set(0)
         self.update_summary(event=None)
-        print("cleared display") ###
 
     def loosen(self, event=None):
         col = self.current_col.get()
@@ -2269,7 +2241,6 @@ class MainApp():
             self.individual_dict[col].loosen()
             self.update_summary(event=None)
             self.graph_zone.update_graph()
-        print("loosen") ###
 
     def stiffen(self, event=None):
         col = self.current_col.get()
@@ -2277,7 +2248,6 @@ class MainApp():
             self.individual_dict[col].stiffen()
             self.update_summary(event=None)
             self.graph_zone.update_graph()
-        print("stiffen") ###
 
     def reset_sp(self, event=None):
         col = self.current_col.get()
@@ -2287,7 +2257,6 @@ class MainApp():
             self.update_summary(event=None)
             self.current_sp.set(
                 self.individual_dict[col].smoothing_value.get())
-        print("reset smoothing parameter") ###
 
     def enter_sp(self, event=None):
         col = self.current_col.get()
@@ -2299,25 +2268,30 @@ class MainApp():
             self.update_summary(event=None)
 
     def update_all_graphs(self, event=None):
+        self.root.config(cursor='wait')
         if self.graph_zone.view == 'mini':
             self.graph_zone.mini_graphs(self.current_page.get(),
                                         and_deselect=False)
         elif self.graph_zone.view == 'mega':
             self.graph_zone.mega_graph(self.current_col.get())
+        self.root.config(cursor='')
 
     def update_all_peaks(self, event=None):
+        self.root.config(cursor='wait')
         for i in self.individual_dict:
             self.individual_dict[i].update_peak()
         self.update_all_graphs()
-        print("update all peaks") ###
+        self.root.config(cursor='')
 
     def update_all_tolerances(self, event=None):
+        self.root.config(cursor='wait')
         for i in self.individual_dict:
             self.individual_dict[i].update_tolerance()
         self.update_all_graphs()
-        print("update all tolerances") ###
+        self.root.config(cursor='')
 
     def update_magenta_graphs(self, event=None):
+        self.root.config(cursor='wait')
         if self.graph_zone.num_pages > 0:
             for i in self.individual_dict:
                 if self.individual_dict[i].sp_status == 'magenta':
@@ -2338,6 +2312,7 @@ class MainApp():
                 self.graph_zone.select_mini_graph(self.graph_zone.current_slot,
                                                   and_deselect=False)
             self.update_all_graphs()
+            self.root.config(cursor='')
 
     def open_message_log(self, event=None):
         self.logWindow = PFuncMessages(self.root, self.messages)
@@ -2507,6 +2482,7 @@ class MainApp():
         data points are toggled off in the PFunc GUI, they will be absent from
         this output as well.
         '''
+        self.root.config(cursor='wait')
         if platform == 'win32':
             ext = ''
         else:
@@ -2571,6 +2547,7 @@ class MainApp():
                 self.draw_one_graph_in_r(self.individual_dict[i])
             r('dev.off()')
             graphfile.close()
+            self.root.config(cursor='')
 
     def draw_one_graph_in_r(self, individual):
         individual.update()
@@ -2635,6 +2612,7 @@ class MainApp():
         Summary box (peak preference, peak height, tolerance, etc.) for all
         individuals in the dataset.
         '''
+        self.root.config(cursor='wait')
         if platform == 'win32':
             ext = ''
         else:
@@ -2672,6 +2650,7 @@ class MainApp():
                        tempind.responsiveness, tempind.smoothing_value.get()))
             r("write.csv(output, '%s', row.names = FALSE)" % summfile.name)
             summfile.close()
+            self.root.config(cursor='')
 
     def output_points(self, event=None):
         '''Output a csv file of points that make up the splines in every graph.
@@ -2681,6 +2660,7 @@ class MainApp():
         Standard Error setting is toggled on in the View settings, then
         standard error points of the spline are output as well.
         '''
+        self.root.config(cursor='wait')
         if platform == 'win32':
             ext = ''
         else:
@@ -2708,6 +2688,7 @@ class MainApp():
             r('output <- output[2:ncol(output)]')
             r('write.csv(output, "%s", row.names = FALSE)' % pointfile.name)
             pointfile.close()
+            self.root.config(cursor='')
 
     def output_tol(self, event=None):
         '''Tolerance is the width of the spline at a certain height. In the
@@ -2717,6 +2698,7 @@ class MainApp():
         Like in the output_points function, this is useful for plotting splines
         in another program.
         '''
+        self.root.config(cursor='wait')
         if platform == 'win32':
             ext = ''
         else:
@@ -2745,6 +2727,7 @@ class MainApp():
                 output_tol_table += output_row
             pointfile.write(output_tol_table)
             pointfile.close()
+            self.root.config(cursor='')
 
     def quit(self, event=None):
         self.root.quit()
