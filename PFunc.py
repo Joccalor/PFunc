@@ -2149,6 +2149,8 @@ class MainApp():
 
     def open_data_file(self, event=None):
         r = robjects.r
+        self.root.config(cursor='wait')
+        # self.root.update()
         self.graph_zone.current_slot = ''
         self.graph_zone.page_dict.clear()
         self.graph_zone.individual_dict.clear()
@@ -2232,6 +2234,8 @@ class MainApp():
         self.menu_bar.activate()
         self.root.event_generate('<<add_message>>', x=102)
         self._check_num_datapoints()
+        self.root.config(cursor='')
+        # self.root.update()
 
     def update_summary(self, event=None):
         if self.current_col.get() != 0:
