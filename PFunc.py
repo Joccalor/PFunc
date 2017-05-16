@@ -376,7 +376,6 @@ class GraphArea(Frame):
         self.view = 'welcome'
 
     def loading_screen(self):
-        print("trying loading screen...")
         if self.view == 'welcome':
             self.welcome_canvas.destroy()
         else:
@@ -395,7 +394,6 @@ class GraphArea(Frame):
         self.loading_canvas.grid(row=0, column=0, sticky=NSEW)
         self.loading_canvas.update_idletasks()
         self.view = 'loading'
-        print("I think I loaded the loading screen.")
 
     def mini_graphs(self, page, and_deselect=True):
         '''Display 3x3 grid of preference function graphs for a given page.'''
@@ -2147,7 +2145,6 @@ class MainApp():
             self.root.event_generate('<<add_message>>', x=105)
 
     def open_data_file(self, event=None):
-        self.graph_zone.loading_screen()
         r = robjects.r
         self.graph_zone.current_slot = ''
         self.graph_zone.page_dict.clear()
@@ -2156,6 +2153,7 @@ class MainApp():
         r("master.gam.list <- list()")
         if self.graph_zone.view == 'mini' or self.graph_zone.view == 'mega':
             self.root.event_generate('<<add_message>>', x=101)
+        self.graph_zone.loading_screen()
         if event.x == 0:
             self.file_type.set('horizontal')
             num_ind = r("ncol(mydata)")[0] - 1
