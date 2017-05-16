@@ -300,6 +300,7 @@ class GraphArea(Frame):
         self.view_se = view_se
         self.tol_mode = tol_mode
         self.input_font = input_font
+        self.parent = parent
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.individual_dict = individual_dict
@@ -374,6 +375,8 @@ class GraphArea(Frame):
 
     def mini_graphs(self, page, and_deselect=True):
         '''Display 3x3 grid of preference function graphs for a given page.'''
+        self.parent.config(cursor='wait')
+        self.parent.update()
         self.view = 'mini'
         self.slot_dict.clear()
         self.tcid_tols.clear()
@@ -422,9 +425,12 @@ class GraphArea(Frame):
         if self.current_slot != '':
             self.select_mini_graph(self.current_slot, and_deselect)
         self.fig.canvas.draw()
+        self.parent.config(cursor='')
 
     def mega_graph(self, column):
         '''Draw one big graph for a particular individual.'''
+        self.parent.config(cursor='wait')
+        self.parent.update()
         self.view = 'mega'
         self.wrapper.destroy()
         self.wrapper = Frame(self)
@@ -451,6 +457,7 @@ class GraphArea(Frame):
         self.fig.text(0.53, 0.02, 'Stimulus', ha='center', va='bottom',
                       fontsize=20)
         self.fig.canvas.draw()
+        self.parent.config(cursor='')
 
     def mini_graph_click(self, event):
         '''Defines what happens when a mini graph is clicked.
@@ -526,10 +533,13 @@ class GraphArea(Frame):
             self.event_generate('<<clear_display>>')
 
     def update_graph(self):
+        self.parent.config(cursor='wait')
+        self.parent.update()
         if self.view == 'mini':
             self.update_mini_graph()
         elif self.view == 'mega':
             self.update_mega_graph()
+        self.parent.config(cursor='')
 
     def update_mini_graph(self):
         '''Draws a new graph in response to changes in settings or smoothing
