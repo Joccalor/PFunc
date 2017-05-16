@@ -218,10 +218,11 @@ class PrefFunc():
         '''Update just the peak of the preference function, without running the
         whole PFunc function in R again.
         '''
-        time1 = datetime.now()  ####
-        # print("updating peak...")###
+        # time1 = datetime.now()  ####
+        print("updating peak...")###
         # print("peak pref: %s" % self.peak_pref)###
         # print("peak resp: %s" % self.peak_resp)###
+        previous_peak = self.peak_pref
         if self.loc_peak.get() == 0:
             instance_peak = '1'
         elif self.loc_peak.get() == 1:
@@ -239,12 +240,13 @@ class PrefFunc():
                                    % peak_bundle.r_repr())).split()[1]
         self.peak_resp = ('%s' % r('%s$peak.response'
                                    % peak_bundle.r_repr())).split()[1]
-        # TODO incoroprate strict tolerance points as well
+        if self.tol_mode.get() == 'strict' and previous_peak != self.peak_pref:
+            self.update_tolerance()
         # print("peak updated!")###
         # print("peak pref: %s" % self.peak_pref)###
         # print("peak resp: %s" % self.peak_resp)###
         # print("---")
-        time2 = datetime.now()  ####
+        # time2 = datetime.now()  ####
         # print("Time to update a peak: ", str(time2 - time1))
 
     def update_tolerance(self):
@@ -252,7 +254,7 @@ class PrefFunc():
         running the whole PFunc function in R again.
         '''
         time1 = datetime.now()  ####
-        # print("updating tolerance...")###
+        print("updating tolerance...")###
         # print("tolerance: %s" % self.tolerance)###
         if self.tol_type.get() == 'relative':
             instance_drop = self.tol_drop.get()
@@ -2293,10 +2295,17 @@ class MainApp():
         if self.graph_zone.num_pages > 0:
             for i in self.individual_dict:
                 if self.individual_dict[i].sp_status == 'magenta':
-                    self.individual_dict[i].reset_sp()
-            # for i in self.graph_zone.page_dict[self.current_page.get()]:
-            #     if self.individual_dict[i].sp_status == 'magenta':
-            #         self.individual_dict[i].reset_sp()
+                    sp_lim_on = (self.sp_lim.get() == 1)
+                    sp_too_small = (
+                        self.individual_dict[i].smoothing_value.get()
+                        < self.sp_min.get())
+                    sp_too_big = (
+                        self.individual_dict[i].smoothing_value.get()
+                        > self.sp_max.get())
+                    if sp_lim_on and (sp_too_small or sp_too_big):
+                        self.individual_dict[i].reset_sp()
+                    elif not sp_lim_on:
+                        self.individual_dict[i].reset_sp()
             self.update_summary(self.current_col.get())
             if self.graph_zone.view == 'mini' and self.current_col.get() != 0:
                 self.graph_zone.select_mini_graph(self.graph_zone.current_slot,
@@ -2402,11 +2411,12 @@ class MainApp():
             spfile.close()
 
     def clear_smoothing_values(self, event=None):
-        for k in self.sp_dict.keys():
-            if self.sp_dict[k].get() != -1:
-                self.sp_dict[k].set('-1')
-                self.individual_dict[k].update()
-                self.individual_dict[k].sp_status = 'magenta'
+        for i in self.individual_dict:
+            if self.individual_dict[i].sp_status == 'cyan':
+                temp_individual_id = self.individual_dict[i].id_number
+                self.sp_dict[temp_individual_id].set('-1')
+                self.individual_dict[i].update()
+                self.individual_dict[i].sp_status = 'magenta'
         self.graph_zone.mini_graphs(self.current_page.get(),
                                     and_deselect=False)
         self.graph_zone.fig.canvas.draw()
@@ -3019,7 +3029,9 @@ if __name__ == '__main__':
 # 170512 - Changed the version convention from date of release (YYMMDD) to
 #          version numbers: major.minor.patch (semantic versioning),
 #          starting with 0.9.0
-
-# TODO
-# - Fix local peak boxes so that they don't go beyond x-axis range.
-# - Increase efficiency
+# 170515 - Implemented update_peak and update_tolerance methods of PrefFunc
+#          class to increase efficiency.
+# 170516 - Fixed a bug--now tolerance updates when it's in strict mode and when
+#          a peak-update results in a new peak.
+#        - Made the clear_smoothing_values function more efficient--now it only
+#          clears smoothing values for cyan individuals.
