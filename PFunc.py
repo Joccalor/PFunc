@@ -375,6 +375,28 @@ class GraphArea(Frame):
         self.welcome_canvas.grid(row=0, column=0, sticky=NSEW)
         self.view = 'welcome'
 
+    def loading_screen(self):
+        print("trying loading screen...")
+        if self.view == 'welcome':
+            self.welcome_canvas.destroy()
+        else:
+            self.wrapper.destroy()
+            self.wrapper = Frame(self)
+            self.wrapper.grid(row=0, column=0, sticky=NSEW)
+            self.wrapper.columnconfigure(0, weight=1)
+            self.wrapper.rowconfigure(0, weight=1)
+        self.loading_canvas = Canvas(self.wrapper, height=550, width=550,
+                                     bg='gray75')
+        self.loading_text = self.loading_canvas.create_text(
+            275, 225, text='Loading...', font=('Helvetica', 24))
+        self.loading_text2 = self.loading_canvas.create_text(
+            275, 260, text='This may take several seconds.', font=('Helvetica', 12))
+        self.loading_canvas.lift(self.loading_text)
+        self.loading_canvas.grid(row=0, column=0, sticky=NSEW)
+        self.loading_canvas.update_idletasks()
+        self.view = 'loading'
+        print("I think I loaded the loading screen.")
+
     def mini_graphs(self, page, and_deselect=True):
         '''Display 3x3 grid of preference function graphs for a given page.'''
         self.view = 'mini'
@@ -2125,13 +2147,14 @@ class MainApp():
             self.root.event_generate('<<add_message>>', x=105)
 
     def open_data_file(self, event=None):
+        self.graph_zone.loading_screen()
         r = robjects.r
         self.graph_zone.current_slot = ''
         self.graph_zone.page_dict.clear()
         self.graph_zone.individual_dict.clear()
         self.sp_dict.clear()
         r("master.gam.list <- list()")
-        if self.graph_zone.view != 'welcome':
+        if self.graph_zone.view == 'mini' or self.graph_zone.view == 'mega':
             self.root.event_generate('<<add_message>>', x=101)
         if event.x == 0:
             self.file_type.set('horizontal')
@@ -3035,3 +3058,4 @@ if __name__ == '__main__':
 #          a peak-update results in a new peak.
 #        - Made the clear_smoothing_values function more efficient--now it only
 #          clears smoothing values for cyan individuals.
+#        - Added a loading screen for when opening data files.
