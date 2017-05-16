@@ -2286,11 +2286,10 @@ class MainApp():
         col = self.current_col.get()
         if col != 0:
             self.sp_dict[col].set(self.current_sp.get())
-            self.individual_dict[col].update()
             self.individual_dict[col].sp_status = 'cyan'
+            self.individual_dict[col].update()
             self.graph_zone.update_graph()
             self.update_summary(event=None)
-        print("enter smoothing parameter") ###
 
     def update_all_graphs(self, event=None):
         if self.graph_zone.view == 'mini':
@@ -2298,7 +2297,6 @@ class MainApp():
                                         and_deselect=False)
         elif self.graph_zone.view == 'mega':
             self.graph_zone.mega_graph(self.current_col.get())
-        print("update all graphs") ###
 
     def update_all_peaks(self, event=None):
         for i in self.individual_dict:
@@ -2332,7 +2330,6 @@ class MainApp():
                 self.graph_zone.select_mini_graph(self.graph_zone.current_slot,
                                                   and_deselect=False)
             self.update_all_graphs()
-        print("update magenta graphs") ###
 
     def open_message_log(self, event=None):
         self.logWindow = PFuncMessages(self.root, self.messages)
@@ -3057,3 +3054,4 @@ if __name__ == '__main__':
 #        - Made the clear_smoothing_values function more efficient--now it only
 #          clears smoothing values for cyan individuals.
 #        - Added a loading screen for when opening data files.
+#        - Fixed a bug related to entering smoothing parameters.
