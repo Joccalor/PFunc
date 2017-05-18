@@ -375,7 +375,10 @@ class GraphArea(Frame):
 
     def mini_graphs(self, page, and_deselect=True):
         '''Display 3x3 grid of preference function graphs for a given page.'''
-        self.parent.config(cursor='wait')
+        try:
+            self.parent.config(cursor='wait')
+        except:
+            self.parent.config(cursor='watch')
         self.parent.update()
         self.view = 'mini'
         self.slot_dict.clear()
@@ -429,7 +432,10 @@ class GraphArea(Frame):
 
     def mega_graph(self, column):
         '''Draw one big graph for a particular individual.'''
-        self.parent.config(cursor='wait')
+        try:
+            self.parent.config(cursor='wait')
+        except:
+            self.parent.config(cursor='watch')
         self.parent.update()
         self.view = 'mega'
         self.wrapper.destroy()
@@ -533,7 +539,10 @@ class GraphArea(Frame):
             self.event_generate('<<clear_display>>')
 
     def update_graph(self):
-        self.parent.config(cursor='wait')
+        try:
+            self.parent.config(cursor='wait')
+        except:
+            self.parent.config(cursor='watch')
         self.parent.update()
         if self.view == 'mini':
             self.update_mini_graph()
@@ -1895,7 +1904,10 @@ class MainApp():
     '''
     def __init__(self):
         self.root = Tk()
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         self._setup_fonts()
         self._setup_dicts()
         self._setup_variables()
@@ -2134,7 +2146,10 @@ class MainApp():
 
     def open_data_file(self, event=None):
         r = robjects.r
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         # self.root.update()
         self.graph_zone.current_slot = ''
         self.graph_zone.page_dict.clear()
@@ -2278,7 +2293,10 @@ class MainApp():
             self.update_summary(event=None)
 
     def update_all_graphs(self, event=None):
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if self.graph_zone.view == 'mini':
             self.graph_zone.mini_graphs(self.current_page.get(),
                                         and_deselect=False)
@@ -2287,21 +2305,30 @@ class MainApp():
         self.root.config(cursor='')
 
     def update_all_peaks(self, event=None):
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         for i in self.individual_dict:
             self.individual_dict[i].update_peak()
         self.update_all_graphs()
         self.root.config(cursor='')
 
     def update_all_tolerances(self, event=None):
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         for i in self.individual_dict:
             self.individual_dict[i].update_tolerance()
         self.update_all_graphs()
         self.root.config(cursor='')
 
     def update_magenta_graphs(self, event=None):
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if self.graph_zone.num_pages > 0:
             for i in self.individual_dict:
                 if self.individual_dict[i].sp_status == 'magenta':
@@ -2492,7 +2519,10 @@ class MainApp():
         data points are toggled off in the PFunc GUI, they will be absent from
         this output as well.
         '''
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
@@ -2622,7 +2652,10 @@ class MainApp():
         Summary box (peak preference, peak height, tolerance, etc.) for all
         individuals in the dataset.
         '''
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
@@ -2670,7 +2703,10 @@ class MainApp():
         Standard Error setting is toggled on in the View settings, then
         standard error points of the spline are output as well.
         '''
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
@@ -2708,7 +2744,10 @@ class MainApp():
         Like in the output_points function, this is useful for plotting splines
         in another program.
         '''
-        self.root.config(cursor='wait')
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
