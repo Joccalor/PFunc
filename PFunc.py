@@ -1507,25 +1507,26 @@ class HelpMenu(Menubutton):
         Menubutton.__init__(self, parent, text='Help')
         self.grid(row=row, column=column, sticky=W)
         self.primary_menu = Menu(self, tearoff=0)
-        self.create_help_command()
+        self.primary_menu.add_command(label='Help', command=self.open_help)
         self.primary_menu.add_command(label='About', command=self.about_window)
         self['menu'] = self.primary_menu
 
-    def create_help_command(self):
-        if platform == 'win32':
-            self.primary_menu.add_command(
-                label='Help', command=lambda: startfile('README.pdf'))
-        elif platform == 'darwin':
-            self.primary_menu.add_command(
-                label='Help',
-                command=lambda: subprocess.call(['open', 'README.pdf']))
-        else:
-            self.primary_menu.add_command(
-                label='Help',
-                command=lambda: subprocess.call(['xdg-open', 'README.pdf']))
-
     def about_window(self):
         self.event_generate('<<create_about_window>>')
+
+    def open_help(self):
+        try:
+            if platform == 'win32':
+                startfile('README.pdf')
+            elif platform == 'darwin':
+                subprocess.call(['open', 'README.pdf'])
+            else:  # linux
+                subprocess.call(['xdg-open', 'README.pdf'])
+        except:
+            warning_text = ("PFunc failed to locate and open README.pdf. "
+                            "You can download a copy of this help file "
+                            "from github.com/joccalor/pfunc")
+            self.warning = messagebox.showwarning('Warning', warning_text)
 
 
 class MenuBar(Frame):
