@@ -1876,16 +1876,23 @@ class AboutWindow(PFuncToplevel):
                                'http://www.gnu.org/licenses/.\n')
 
     def place_elements(self):
+        try:
+            img = PhotoImage(file='PFuncIcon.png')
+            self.pfunc_logo = Label(self, image=img)
+            self.pfunc_logo.image = img
+            self.pfunc_logo.grid(row=0, column=0)
+        except:
+            a = 1
         self.title = Label(self, text=self.title_text, font=self.title_font)
-        self.title.grid(row=0, column=0)
+        self.title.grid(row=1, column=0)
         self.subtitle = Label(self, text=self.subtitle_text)
-        self.subtitle.grid(row=1, column=0)
+        self.subtitle.grid(row=2, column=0)
         self.version = Label(self, text=self.version_text)
-        self.version.grid(row=2, column=0)
+        self.version.grid(row=3, column=0)
         self.copyright = Label(self, text=self.copyright_text)
-        self.copyright.grid(row=3, column=0)
+        self.copyright.grid(row=4, column=0)
         self.closebutton = Button(self, text='Close', command=self.destroy)
-        self.closebutton.grid(row=4, column=0)
+        self.closebutton.grid(row=5, column=0)
 
     def set_geometry(self):
         rootWd = int(self.parent.root.winfo_width()) / 2
