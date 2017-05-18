@@ -1515,14 +1515,15 @@ class HelpMenu(Menubutton):
         self.event_generate('<<create_about_window>>')
 
     def open_help(self):
-        try:
+        if 'README.pdf' in listdir():
             if platform == 'win32':
                 startfile('README.pdf')
             elif platform == 'darwin':
                 subprocess.call(['open', 'README.pdf'])
+                print("hi")
             else:  # linux
                 subprocess.call(['xdg-open', 'README.pdf'])
-        except:
+        else:
             warning_text = ("PFunc failed to locate and open README.pdf. "
                             "You can download a copy of this help file "
                             "from github.com/joccalor/pfunc")
@@ -1550,7 +1551,7 @@ class PFuncToplevel(Toplevel):
     def __init__(self, parent=None, **kw):
         Toplevel.__init__(self, parent, takefocus=True, **kw)
         try:
-            img = PhotoImage(file='PFuncIcon.png')
+            img = PhotoImage(file='PFuncIcon.gif')
             self.tk.call('wm', 'iconphoto', self._w, img)
         except:
             a = 1
@@ -1877,7 +1878,7 @@ class AboutWindow(PFuncToplevel):
 
     def place_elements(self):
         try:
-            img = PhotoImage(file='PFuncIcon.png')
+            img = PhotoImage(file='PFuncIcon.gif')
             self.pfunc_logo = Label(self, image=img)
             self.pfunc_logo.image = img
             self.pfunc_logo.grid(row=0, column=0)
@@ -1958,7 +1959,7 @@ class MainApp():
         self.control_panel.grid(row=1, column=1, sticky=NSEW)
         self.root.title('PFunc')
         try:
-            img = PhotoImage(file='PFuncIcon.png')
+            img = PhotoImage(file='PFuncIcon.gif')
             self.root.tk.call('wm', 'iconphoto', self.root._w, img)
         except:
             a = 1
