@@ -1851,7 +1851,7 @@ class AboutWindow(PFuncToplevel):
         self.title_text = 'PFunc'
         self.subtitle_text = ('A tool for analyzing preference functions and '
                               'other function-valued traits.\n')
-        self.version_text = 'Version 0.9.0 (2017-05-12)\n'
+        self.version_text = 'version 0.10.0 \n (2017-05-18)\n'
         self.copyright_text = ('Copyright (C) 2016, 2017 Joseph Kilmer \n\n'
                                'PFunc is distributed under the GNU General '
                                'Public License v3. A full copy of\n'
@@ -3096,3 +3096,6 @@ if __name__ == '__main__':
 #          clears smoothing values for cyan individuals.
 #        - Added a loading screen for when opening data files.
 #        - Fixed a bug related to entering smoothing parameters.
+#        - Added cursor changes (busy vs ready)
+# 170518 - Fixed cursor bug in Linux
+#        - Added warning message when PFunc can't find README.pdf
