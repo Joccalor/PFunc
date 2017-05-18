@@ -157,6 +157,7 @@ class PrefFunc():
                      instance_peak, instance_drop, self.tol_mode.get(),
                      self.sp_lim.get(), self.sp_min.get(), self.sp_max.get(),
                      instance_floor))
+        r("master.gam.list[[%s]] <- curr.func$gam.object" % self.id_number)
 
     def populate_stats(self):
         self.spline_x = r('curr.func$stimulus')
@@ -164,8 +165,10 @@ class PrefFunc():
         self.se = r('curr.func$se')
         self.peak_pref = ('%s' % r('curr.func$peak.preference')).split()[1]
         self.peak_resp = ('%s' % r('curr.func$peak.response')).split()[1]
-        self.tolerance = ('%s' % r('curr.func$final.tol')).split()[1]
-        self.tolerance_points = r('curr.func$tol.points')
+        self.broad_tolerance = ('%s' % r('curr.func$broad.tol')).split()[1]
+        self.strict_tolerance = ('%s' % r('curr.func$strict.tol')).split()[1]
+        self.broad_tolerance_points = r('curr.func$broad.tol.points')
+        self.strict_tolerance_points = r('curr.func$strict.tol.points')
         self.tolerance_height = ('%s' % r('curr.func$tol.height')).split()[1]
         self.hd_strength = ('%s' % r('curr.func$hd.strength')).split()[1]
         self.hi_strength = ('%s' % r('curr.func$hi.strength')).split()[1]
@@ -173,6 +176,7 @@ class PrefFunc():
         self.axes_ranges = r('range.bundle')  # min.x, max.x, min.y, max.y
         self.smoothing_value.set((
             '%s' % r('curr.func$smoothing.parameter')).split()[1])
+        self.is_flat = r('curr.func$is.flat')
 
     def stiffen(self):
         '''Increase the smoothing parameter'''
@@ -205,6 +209,75 @@ class PrefFunc():
         new_sp_val = round(10 ** (round_log_sp_val + by), 6)
         return str(new_sp_val)
 
+    def update_peak(self):
+        '''Update just the peak of the preference function, without running the
+        whole PFunc function in R again.
+        '''
+        previous_peak = self.peak_pref
+        if self.loc_peak.get() == 0:
+            instance_peak = '1'
+        elif self.loc_peak.get() == 1:
+            instance_peak = 'c(%s, %s)' % (self.peak_min.get(),
+                                           self.peak_max.get())
+        peak_bundle = r('''Peak(input.stimuli = %s,
+                                preference.function = master.gam.list[[%s]],
+                                peak.within = %s,
+                                is.flat = %s)
+                        ''' % (self.data_x.r_repr(),
+                               self.id_number,
+                               instance_peak,
+                               self.is_flat.r_repr()))
+        self.peak_pref = ('%s' % r('%s$peak.preference'
+                                   % peak_bundle.r_repr())).split()[1]
+        self.peak_resp = ('%s' % r('%s$peak.response'
+                                   % peak_bundle.r_repr())).split()[1]
+        if self.tol_mode.get() == 'strict' and previous_peak != self.peak_pref:
+            self.update_tolerance()
+
+    def update_tolerance(self):
+        '''Update just the tolerance of the preference function, without
+        running the whole PFunc function in R again.
+        '''
+        if self.tol_type.get() == 'relative':
+            instance_drop = self.tol_drop.get()
+            instance_floor = self.tol_floor.get()
+        elif self.tol_type.get() == 'absolute':
+            instance_drop = 1
+            instance_floor = self.tol_absolute.get()
+        r('''temp.stim.values <- data.frame(stimulus = %s)
+             temp.peak.bundle <- list(peak.preference = %s,
+                                      peak.response = %s,
+                                      predicting.stimuli = temp.stim.values,
+                                      predicted.response = as.vector(%s),
+                                      max.stim = max(temp.stim.values),
+                                      min.stim = min(temp.stim.values))
+          ''' % (self.spline_x.r_repr(),
+                 self.peak_pref,
+                 self.peak_resp,
+                 self.spline_y.r_repr()
+                )
+        )
+        tolerance_bundle = r('''Tolerance(drop = %s,
+                                          peak.bundle = temp.peak.bundle,
+                                          is.flat = %s,
+                                          preference.function =
+                                            master.gam.list[[%s]],
+                                          tol.floor = %s)
+                             ''' % (instance_drop,
+                                    self.is_flat.r_repr(),
+                                    self.id_number,
+                                    instance_floor))
+        self.broad_tolerance = ('%s' % r('%s$broad.tolerance'
+                                   % tolerance_bundle.r_repr())).split()[1]
+        self.strict_tolerance = ('%s' % r('%s$strict.tolerance'
+                                   % tolerance_bundle.r_repr())).split()[1]
+        self.broad_tolerance_points = r('%s$cross.points'
+                                   % tolerance_bundle.r_repr())
+        self.strict_tolerance_points = r('%s$strict.points'
+                                   % tolerance_bundle.r_repr())
+        self.tolerance_height = ('%s' % r('%s$tolerance.height'
+                                   % tolerance_bundle.r_repr())).split()[1]
+
 
 class GraphArea(Frame):
     '''Contains everything in the main viewing window of PFunc, including
@@ -215,7 +288,7 @@ class GraphArea(Frame):
     '''
     def __init__(self, individual_dict, current_col, current_page,
                  view_names, view_pts, view_pandtol, view_spline, view_se,
-                 input_font, parent=None, **kw):
+                 tol_mode, input_font, parent=None, **kw):
         Frame.__init__(self, parent, relief=SUNKEN, bd=1)
         self.current_col = current_col
         self.recent_col = IntVar()
@@ -225,7 +298,9 @@ class GraphArea(Frame):
         self.view_pandtol = view_pandtol
         self.view_spline = view_spline
         self.view_se = view_se
+        self.tol_mode = tol_mode
         self.input_font = input_font
+        self.parent = parent
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.individual_dict = individual_dict
@@ -278,8 +353,33 @@ class GraphArea(Frame):
         self.welcome_canvas.grid(row=0, column=0, sticky=NSEW)
         self.view = 'welcome'
 
+    def loading_screen(self):
+        if self.view == 'welcome':
+            self.welcome_canvas.destroy()
+        else:
+            self.wrapper.destroy()
+            self.wrapper = Frame(self)
+            self.wrapper.grid(row=0, column=0, sticky=NSEW)
+            self.wrapper.columnconfigure(0, weight=1)
+            self.wrapper.rowconfigure(0, weight=1)
+        self.loading_canvas = Canvas(self.wrapper, height=550, width=550,
+                                     bg='gray75')
+        self.loading_text = self.loading_canvas.create_text(
+            275, 225, text='Loading...', font=('Helvetica', 24))
+        self.loading_text2 = self.loading_canvas.create_text(
+            275, 260, text='This may take several seconds.', font=('Helvetica', 12))
+        self.loading_canvas.lift(self.loading_text)
+        self.loading_canvas.grid(row=0, column=0, sticky=NSEW)
+        self.loading_canvas.update_idletasks()
+        self.view = 'loading'
+
     def mini_graphs(self, page, and_deselect=True):
         '''Display 3x3 grid of preference function graphs for a given page.'''
+        try:
+            self.parent.config(cursor='wait')
+        except:
+            self.parent.config(cursor='watch')
+        self.parent.update()
         self.view = 'mini'
         self.slot_dict.clear()
         self.tcid_tols.clear()
@@ -307,7 +407,6 @@ class GraphArea(Frame):
         counter = 1
         for i in self.page_dict[page]:
             individual = self.individual_dict[i]
-            individual.update()  #_# Needs to go
             if int(matplotlib.__version__.split('.')[0]) >= 2:
                 self.slot_dict[counter] = self.fig.add_subplot(
                     '33%d' % counter, facecolor=individual.background)
@@ -329,9 +428,15 @@ class GraphArea(Frame):
         if self.current_slot != '':
             self.select_mini_graph(self.current_slot, and_deselect)
         self.fig.canvas.draw()
+        self.parent.config(cursor='')
 
     def mega_graph(self, column):
         '''Draw one big graph for a particular individual.'''
+        try:
+            self.parent.config(cursor='wait')
+        except:
+            self.parent.config(cursor='watch')
+        self.parent.update()
         self.view = 'mega'
         self.wrapper.destroy()
         self.wrapper = Frame(self)
@@ -344,7 +449,6 @@ class GraphArea(Frame):
                                                self.mega_graph_click)
         self.fig_canvas.get_tk_widget().grid(row=0, column=0, sticky=NSEW)
         individual = self.individual_dict[column]
-        individual.update()
         if int(matplotlib.__version__.split('.')[0]) >= 2:
             slot = self.fig.add_subplot('111', facecolor=individual.background)
         else:
@@ -359,6 +463,7 @@ class GraphArea(Frame):
         self.fig.text(0.53, 0.02, 'Stimulus', ha='center', va='bottom',
                       fontsize=20)
         self.fig.canvas.draw()
+        self.parent.config(cursor='')
 
     def mini_graph_click(self, event):
         '''Defines what happens when a mini graph is clicked.
@@ -434,10 +539,16 @@ class GraphArea(Frame):
             self.event_generate('<<clear_display>>')
 
     def update_graph(self):
+        try:
+            self.parent.config(cursor='wait')
+        except:
+            self.parent.config(cursor='watch')
+        self.parent.update()
         if self.view == 'mini':
             self.update_mini_graph()
         elif self.view == 'mega':
             self.update_mega_graph()
+        self.parent.config(cursor='')
 
     def update_mini_graph(self):
         '''Draws a new graph in response to changes in settings or smoothing
@@ -505,11 +616,20 @@ class GraphArea(Frame):
                 slot.plot([individual.peak_pref, individual.peak_pref],
                           [individual.axes_ranges[2], individual.peak_resp],
                           'r-')
-            for t in range(0, len(individual.tolerance_points), 2):
-                slot.plot([individual.tolerance_points[t],
-                           individual.tolerance_points[t+1]],
+            if self.tol_mode.get() == 'broad':
+                current_tolerance_points = individual.broad_tolerance_points
+            elif self.tol_mode.get() == 'strict':
+                current_tolerance_points = individual.strict_tolerance_points
+            for t in range(0, len(current_tolerance_points), 2):
+                slot.plot([current_tolerance_points[t],
+                           current_tolerance_points[t+1]],
                           [individual.tolerance_height,
                            individual.tolerance_height], 'b-')
+            # for t in range(0, len(individual.tolerance_points), 2):
+            #     slot.plot([individual.tolerance_points[t],
+            #                individual.tolerance_points[t+1]],
+            #               [individual.tolerance_height,
+            #                individual.tolerance_height], 'b-')
         if self.view_spline.get() == 1:
             slot.plot(individual.spline_x, individual.spline_y, 'k-')
         if self.view_se.get() == 1:
@@ -761,7 +881,8 @@ class SummaryBox(LabelFrame):
         self.summary_window.insert(END, self.summary_text)
         self.summary_window.configure(state=DISABLED)
 
-    def update_summary(self, individual=None, strength_mode=None):
+    def update_summary(self, individual=None,
+                       strength_mode=None, tol_mode=None):
         self.summary_window.configure(state=NORMAL)
         self.summary_window.delete(1.17, '1.end')
         self.summary_window.delete(2.13, '2.end')
@@ -772,7 +893,12 @@ class SummaryBox(LabelFrame):
         if individual is not None:
             self.summary_window.insert(1.17, individual.peak_pref)
             self.summary_window.insert(2.13, individual.peak_resp)
-            self.summary_window.insert(3.11, individual.tolerance)
+            # self.summary_window.insert(3.11, individual.tolerance)
+            if tol_mode.get() == 'broad':
+                self.summary_window.insert('3.11', individual.broad_tolerance)
+            elif tol_mode.get() == 'strict':
+                self.summary_window.insert('3.11', individual.strict_tolerance)
+
             if strength_mode.get() == 'Height-Dependent':
                 self.summary_window.insert('4.10', individual.hd_strength)
             elif strength_mode.get() == 'Height-Independent':
@@ -915,10 +1041,14 @@ class LocalPeakBox(LabelFrame):
             self.peak_btwn_ent1.configure(state=DISABLED)
             self.peak_btwn_ent2.configure(state=DISABLED)
         if andupdate:
-            self.event_generate('<<update_all_graphs>>')
+            #self.event_generate('<<update_all_graphs>>')
+            self.event_generate('<<update_all_peaks>>')
+            self.event_generate('<<update_summary>>')
 
     def enter_peak_btwn(self, event):
-        self.event_generate('<<update_all_graphs>>')
+        #self.event_generate('<<update_all_graphs>>')
+        self.event_generate('<<update_all_peaks>>')
+        self.event_generate('<<update_summary>>')
 
 
 class ToleranceBox(LabelFrame):
@@ -971,12 +1101,13 @@ class ToleranceBox(LabelFrame):
         self.tol_mode_broad = Radiobutton(
             self.tol_mode_zone, text='Broad', variable=self.tol_mode,
             value='broad',
-            command=lambda: self.event_generate('<<update_all_graphs>>'))
+            command=self.change_tol_mode)
+            # command=lambda: self.event_generate('<<update_all_graphs>>'))
         self.tol_mode_broad.grid(row=0, column=1, sticky=W)
         self.tol_mode_stct = Radiobutton(
             self.tol_mode_zone, text='Strict', variable=tol_mode,
             value='strict',
-            command=lambda: self.event_generate('<<update_all_graphs>>'))
+            command=self.change_tol_mode)
         self.tol_mode_stct.grid(row=0, column=2, sticky=W)
         self.tol_rel_ent.bind('<Return>', self.enter_tol_setting)
         self.tol_floor_ent.bind('<Return>', self.enter_tol_setting)
@@ -999,10 +1130,16 @@ class ToleranceBox(LabelFrame):
             self.tol_abs_lab.configure(state=NORMAL)
             self.tol_abs_ent.configure(state=NORMAL)
         if andupdate:
-            self.event_generate('<<update_all_graphs>>')
+            #self.event_generate('<<update_all_graphs>>')
+            self.event_generate('<<update_all_tolerances>>')
             self.event_generate('<<update_summary>>')
 
     def enter_tol_setting(self, event):
+        #self.event_generate('<<update_all_graphs>>')
+        self.event_generate('<<update_all_tolerances>>')
+        self.event_generate('<<update_summary>>')
+
+    def change_tol_mode(self):
         self.event_generate('<<update_all_graphs>>')
         self.event_generate('<<update_summary>>')
 
@@ -1076,8 +1213,9 @@ class ControlPanel(Frame):
                                         strength_mode=strength_mode,
                                         heading_font=heading_font, row=7)
 
-    def update_summary(self, individual=None, strength_mode=None):
-        self.summary_box.update_summary(individual, strength_mode)
+    def update_summary(self, individual=None,
+                       strength_mode=None, tol_mode=None):
+        self.summary_box.update_summary(individual, strength_mode, tol_mode)
 
     def activate(self):
         self.smoothing_box.activate()
@@ -1369,25 +1507,27 @@ class HelpMenu(Menubutton):
         Menubutton.__init__(self, parent, text='Help')
         self.grid(row=row, column=column, sticky=W)
         self.primary_menu = Menu(self, tearoff=0)
-        self.create_help_command()
+        self.primary_menu.add_command(label='Help', command=self.open_help)
         self.primary_menu.add_command(label='About', command=self.about_window)
         self['menu'] = self.primary_menu
 
-    def create_help_command(self):
-        if platform == 'win32':
-            self.primary_menu.add_command(
-                label='Help', command=lambda: startfile('README.pdf'))
-        elif platform == 'darwin':
-            self.primary_menu.add_command(
-                label='Help',
-                command=lambda: subprocess.call(['open', 'README.pdf']))
-        else:
-            self.primary_menu.add_command(
-                label='Help',
-                command=lambda: subprocess.call(['xdg-open', 'README.pdf']))
-
     def about_window(self):
         self.event_generate('<<create_about_window>>')
+
+    def open_help(self):
+        if 'README.pdf' in listdir():
+            if platform == 'win32':
+                startfile('README.pdf')
+            elif platform == 'darwin':
+                subprocess.call(['open', 'README.pdf'])
+                print("hi")
+            else:  # linux
+                subprocess.call(['xdg-open', 'README.pdf'])
+        else:
+            warning_text = ("PFunc failed to locate and open README.pdf. "
+                            "You can download a copy of this help file "
+                            "from github.com/joccalor/pfunc")
+            self.warning = messagebox.showwarning('Warning', warning_text)
 
 
 class MenuBar(Frame):
@@ -1411,7 +1551,7 @@ class PFuncToplevel(Toplevel):
     def __init__(self, parent=None, **kw):
         Toplevel.__init__(self, parent, takefocus=True, **kw)
         try:
-            img = PhotoImage(file='PFuncIcon.png')
+            img = PhotoImage(file='PFuncIcon.gif')
             self.tk.call('wm', 'iconphoto', self._w, img)
         except:
             a = 1
@@ -1712,7 +1852,7 @@ class AboutWindow(PFuncToplevel):
         self.title_text = 'PFunc'
         self.subtitle_text = ('A tool for analyzing preference functions and '
                               'other function-valued traits.\n')
-        self.version_text = 'Version 0.9.0 (2017-05-12)\n'
+        self.version_text = 'version 0.10.0 \n (2017-05-18)\n'
         self.copyright_text = ('Copyright (C) 2016, 2017 Joseph Kilmer \n\n'
                                'PFunc is distributed under the GNU General '
                                'Public License v3. A full copy of\n'
@@ -1737,16 +1877,23 @@ class AboutWindow(PFuncToplevel):
                                'http://www.gnu.org/licenses/.\n')
 
     def place_elements(self):
+        try:
+            img = PhotoImage(file='PFuncIcon.gif')
+            self.pfunc_logo = Label(self, image=img)
+            self.pfunc_logo.image = img
+            self.pfunc_logo.grid(row=0, column=0)
+        except:
+            a = 1
         self.title = Label(self, text=self.title_text, font=self.title_font)
-        self.title.grid(row=0, column=0)
+        self.title.grid(row=1, column=0)
         self.subtitle = Label(self, text=self.subtitle_text)
-        self.subtitle.grid(row=1, column=0)
+        self.subtitle.grid(row=2, column=0)
         self.version = Label(self, text=self.version_text)
-        self.version.grid(row=2, column=0)
+        self.version.grid(row=3, column=0)
         self.copyright = Label(self, text=self.copyright_text)
-        self.copyright.grid(row=3, column=0)
+        self.copyright.grid(row=4, column=0)
         self.closebutton = Button(self, text='Close', command=self.destroy)
-        self.closebutton.grid(row=4, column=0)
+        self.closebutton.grid(row=5, column=0)
 
     def set_geometry(self):
         rootWd = int(self.parent.root.winfo_width()) / 2
@@ -1766,6 +1913,10 @@ class MainApp():
     '''
     def __init__(self):
         self.root = Tk()
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         self._setup_fonts()
         self._setup_dicts()
         self._setup_variables()
@@ -1780,6 +1931,7 @@ class MainApp():
                                     self.current_page, self.view_names,
                                     self.view_pts, self.view_pandtol,
                                     self.view_spline, self.view_se,
+                                    self.tol_mode,
                                     self.input_font, parent=self.root)
         self.graph_zone.grid(row=1, column=0, sticky=NSEW)
         self.control_panel = ControlPanel(heading_font=self.heading_font,
@@ -1807,11 +1959,12 @@ class MainApp():
         self.control_panel.grid(row=1, column=1, sticky=NSEW)
         self.root.title('PFunc')
         try:
-            img = PhotoImage(file='PFuncIcon.png')
+            img = PhotoImage(file='PFuncIcon.gif')
             self.root.tk.call('wm', 'iconphoto', self.root._w, img)
         except:
             a = 1
         self.root.event_generate('<<add_message>>', x=100)
+        self.root.config(cursor='')
 
     def _setup_fonts(self):
         self.default_font = tkFont.nametofont('TkDefaultFont')
@@ -1901,7 +2054,7 @@ class MainApp():
             current_directory.set(path.dirname(path.realpath(argv[0])))
             current_directory.set(current_directory.get().replace("\\", "/"))
         r("setwd('%s')" % current_directory.get())
-        r("source('PFunc_Rcode_0.9.0.R')")  # R version
+        r("source('PFunc_RCode.R')")
 
     def _setup_file_opt(self):
         self.file_opt = {}
@@ -1922,6 +2075,8 @@ class MainApp():
         self.root.bind('<<reset_sp>>', self.reset_sp)
         self.root.bind('<<enter_sp>>', self.enter_sp)
         self.root.bind('<<update_all_graphs>>', self.update_all_graphs)
+        self.root.bind('<<update_all_peaks>>', self.update_all_peaks)
+        self.root.bind('<<update_all_tolerances>>', self.update_all_tolerances)
         self.root.bind('<<update_magenta_graphs>>', self.update_magenta_graphs)
         self.root.bind('<<open_message_log>>', self.open_message_log)
         self.root.bind('<<add_message>>', self.add_message)
@@ -1979,6 +2134,9 @@ class MainApp():
         self.loc_peak.set(0)
         self.peak_min.set('min')
         self.peak_max.set('max')
+        if r("InCheck('min.stim', objects())")[0]:
+            self.peak_min.set(r("min.stim")[0])
+            self.peak_max.set(r("max.stim")[0])
         self.strength_mode.set('Height-Dependent')
         self.sp_lim.set(1)
         self.sp_min.set('0.05')
@@ -1997,12 +2155,19 @@ class MainApp():
 
     def open_data_file(self, event=None):
         r = robjects.r
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
+        # self.root.update()
         self.graph_zone.current_slot = ''
         self.graph_zone.page_dict.clear()
         self.graph_zone.individual_dict.clear()
         self.sp_dict.clear()
-        if self.graph_zone.view != 'welcome':
+        r("master.gam.list <- list()")
+        if self.graph_zone.view == 'mini' or self.graph_zone.view == 'mega':
             self.root.event_generate('<<add_message>>', x=101)
+        self.graph_zone.loading_screen()
         if event.x == 0:
             self.file_type.set('horizontal')
             num_ind = r("ncol(mydata)")[0] - 1
@@ -2078,6 +2243,8 @@ class MainApp():
         self.menu_bar.activate()
         self.root.event_generate('<<add_message>>', x=102)
         self._check_num_datapoints()
+        self.root.config(cursor='')
+        # self.root.update()
 
     def update_summary(self, event=None):
         if self.current_col.get() != 0:
@@ -2087,7 +2254,8 @@ class MainApp():
         else:
             current_individual = None
         self.control_panel.update_summary(individual=current_individual,
-                                          strength_mode=self.strength_mode)
+                                          strength_mode=self.strength_mode,
+                                          tol_mode=self.tol_mode)
 
     def update_sp(self, event=None):
         if self.current_col.get() != 0:
@@ -2128,28 +2296,69 @@ class MainApp():
         col = self.current_col.get()
         if col != 0:
             self.sp_dict[col].set(self.current_sp.get())
-            self.individual_dict[col].update()
             self.individual_dict[col].sp_status = 'cyan'
+            self.individual_dict[col].update()
             self.graph_zone.update_graph()
             self.update_summary(event=None)
 
     def update_all_graphs(self, event=None):
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if self.graph_zone.view == 'mini':
             self.graph_zone.mini_graphs(self.current_page.get(),
                                         and_deselect=False)
         elif self.graph_zone.view == 'mega':
             self.graph_zone.mega_graph(self.current_col.get())
+        self.root.config(cursor='')
+
+    def update_all_peaks(self, event=None):
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
+        for i in self.individual_dict:
+            self.individual_dict[i].update_peak()
+        self.update_all_graphs()
+        self.root.config(cursor='')
+
+    def update_all_tolerances(self, event=None):
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
+        for i in self.individual_dict:
+            self.individual_dict[i].update_tolerance()
+        self.update_all_graphs()
+        self.root.config(cursor='')
 
     def update_magenta_graphs(self, event=None):
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if self.graph_zone.num_pages > 0:
-            # for i in self.graph_zone.page_dict[self.current_page.get()]:
-            #     if self.individual_dict[i].sp_status == 'magenta':
-            #         self.individual_dict[i].reset_sp()
-            #         self.update_summary(self.current_col.get())
+            for i in self.individual_dict:
+                if self.individual_dict[i].sp_status == 'magenta':
+                    # sp_lim_on = (self.sp_lim.get() == 1)
+                    # sp_too_small = (
+                    #     self.individual_dict[i].smoothing_value.get()
+                    #     < self.sp_min.get())
+                    # sp_too_big = (
+                    #     self.individual_dict[i].smoothing_value.get()
+                    #     > self.sp_max.get())
+                    # if sp_lim_on and (sp_too_small or sp_too_big):
+                    #     self.individual_dict[i].reset_sp()
+                    # elif not sp_lim_on:
+                    #     self.individual_dict[i].reset_sp()
+                    self.individual_dict[i].reset_sp()
+            self.update_summary(self.current_col.get())
             if self.graph_zone.view == 'mini' and self.current_col.get() != 0:
                 self.graph_zone.select_mini_graph(self.graph_zone.current_slot,
                                                   and_deselect=False)
             self.update_all_graphs()
+            self.root.config(cursor='')
 
     def open_message_log(self, event=None):
         self.logWindow = PFuncMessages(self.root, self.messages)
@@ -2249,11 +2458,12 @@ class MainApp():
             spfile.close()
 
     def clear_smoothing_values(self, event=None):
-        for k in self.sp_dict.keys():
-            if self.sp_dict[k].get() != -1:
-                self.sp_dict[k].set('-1')
-                self.individual_dict[k].update()
-                self.individual_dict[k].sp_status = 'magenta'
+        for i in self.individual_dict:
+            if self.individual_dict[i].sp_status == 'cyan':
+                temp_individual_id = self.individual_dict[i].id_number
+                self.sp_dict[temp_individual_id].set('-1')
+                self.individual_dict[i].update()
+                self.individual_dict[i].sp_status = 'magenta'
         self.graph_zone.mini_graphs(self.current_page.get(),
                                     and_deselect=False)
         self.graph_zone.fig.canvas.draw()
@@ -2318,6 +2528,10 @@ class MainApp():
         data points are toggled off in the PFunc GUI, they will be absent from
         this output as well.
         '''
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
@@ -2382,10 +2596,17 @@ class MainApp():
                 self.draw_one_graph_in_r(self.individual_dict[i])
             r('dev.off()')
             graphfile.close()
+            self.root.config(cursor='')
 
     def draw_one_graph_in_r(self, individual):
         individual.update()
         isSubmerged = individual.tolerance_height > individual.peak_resp
+        if self.tol_mode.get() == 'broad':
+            current_tolerance_points = (
+                individual.broad_tolerance_points.r_repr())
+        elif self.tol_mode.get() == 'strict':
+            current_tolerance_points = (
+                individual.strict_tolerance_points.r_repr())
         r('''individual_data <- %s
              peak_bundle <- list(peak.response = %s,
                                  peak.preference = %s,
@@ -2406,7 +2627,8 @@ class MainApp():
                individual.spline_y.r_repr(),
                individual.se.r_repr(),
                individual.tolerance_height,
-               individual.tolerance_points.r_repr(),
+               current_tolerance_points,
+               #individual.tolerance_points.r_repr(),
                str(isSubmerged).upper(),
                #individual.data_y.r_repr()
                ))
@@ -2439,6 +2661,10 @@ class MainApp():
         Summary box (peak preference, peak height, tolerance, etc.) for all
         individuals in the dataset.
         '''
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
@@ -2460,6 +2686,10 @@ class MainApp():
             for i in self.individual_dict:
                 tempind = self.individual_dict[i]
                 tempind.update()
+                if self.tol_mode.get() == 'broad':
+                    temp_tolerance = self.individual_dict[i].broad_tolerance
+                elif self.tol_mode.get() == 'strict':
+                    temp_tolerance = self.individual_dict[i].strict_tolerance
                 if self.strength_mode.get() == 'Height-Dependent':
                     temp_strength = tempind.hd_strength
                 elif self.strength_mode.get() == 'Height-Independent':
@@ -2468,10 +2698,11 @@ class MainApp():
                      output[%s, 2:7] <- c(%s, %s, %s, %s, %s, %s)
                 ''' % (i, tempind.name, i, tempind.peak_pref,
                        tempind.peak_resp,
-                       tempind.tolerance, temp_strength,
+                       temp_tolerance, temp_strength,
                        tempind.responsiveness, tempind.smoothing_value.get()))
             r("write.csv(output, '%s', row.names = FALSE)" % summfile.name)
             summfile.close()
+            self.root.config(cursor='')
 
     def output_points(self, event=None):
         '''Output a csv file of points that make up the splines in every graph.
@@ -2481,6 +2712,10 @@ class MainApp():
         Standard Error setting is toggled on in the View settings, then
         standard error points of the spline are output as well.
         '''
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
@@ -2508,6 +2743,7 @@ class MainApp():
             r('output <- output[2:ncol(output)]')
             r('write.csv(output, "%s", row.names = FALSE)' % pointfile.name)
             pointfile.close()
+            self.root.config(cursor='')
 
     def output_tol(self, event=None):
         '''Tolerance is the width of the spline at a certain height. In the
@@ -2517,6 +2753,10 @@ class MainApp():
         Like in the output_points function, this is useful for plotting splines
         in another program.
         '''
+        try:
+            self.root.config(cursor='wait')
+        except:
+            self.root.config(cursor='watch')
         if platform == 'win32':
             ext = ''
         else:
@@ -2529,7 +2769,12 @@ class MainApp():
             output_tol_table = ''
             for i in range(1, len(self.individual_dict) + 1):
                 individual_name = self.individual_dict[i].name
-                individual_tol_pts = self.individual_dict[i].tolerance_points
+                if self.tol_mode.get() == 'broad':
+                    individual_tol_pts = (
+                        self.individual_dict[i].broad_tolerance_points)
+                elif self.tol_mode.get() == 'strict':
+                    individual_tol_pts = (
+                        self.individual_dict[i].strict_tolerance_points)
                 tol_pts_str = ''
                 for i in individual_tol_pts:
                     tol_pts_str = tol_pts_str + str(i) + ', '
@@ -2540,6 +2785,7 @@ class MainApp():
                 output_tol_table += output_row
             pointfile.write(output_tol_table)
             pointfile.close()
+            self.root.config(cursor='')
 
     def quit(self, event=None):
         self.root.quit()
@@ -2850,7 +3096,14 @@ if __name__ == '__main__':
 # 170512 - Changed the version convention from date of release (YYMMDD) to
 #          version numbers: major.minor.patch (semantic versioning),
 #          starting with 0.9.0
-
-# TODO
-# - Fix local peak boxes so that they don't go beyond x-axis range.
-# - Increase efficiency
+# 170515 - Implemented update_peak and update_tolerance methods of PrefFunc
+#          class to increase efficiency.
+# 170516 - Fixed a bug--now tolerance updates when it's in strict mode and when
+#          a peak-update results in a new peak.
+#        - Made the clear_smoothing_values function more efficient--now it only
+#          clears smoothing values for cyan individuals.
+#        - Added a loading screen for when opening data files.
+#        - Fixed a bug related to entering smoothing parameters.
+#        - Added cursor changes (busy vs ready)
+# 170518 - Fixed cursor bug in Linux
+#        - Added warning message when PFunc can't find README.pdf

@@ -2,7 +2,7 @@ PFunc
 ===
 PFunc is a set of tools for fitting and analyzing function-valued traits. It was designed for quantifying preference functions (hence the name) in biological studies of sexual selection and evolution of mate preferences. PFunc accepts a bivariate dataset composed of stimuli and responses to those stimuli as its input. It then fits cubic splines to these data using the gam function in R, and it displays the curves, along with several useful measurements of the shape of the curve. Users have several options for adjusting the curves and the tools used to measure the curves, and for outputting results for further analysis.
 
-This file was last updated 2017-05-12 for PFunc version 0.9.0.
+This file was last updated 2017-05-18 for PFunc version 0.10.0.
 
 Table of Contents
 ---
@@ -28,12 +28,12 @@ Table of Contents
 
 Files
 ---
-`PFunc_GUI_0.9.0.py` - the main file to run for the full PFunc GUI experience  
-`PFunc_Rcode_0.9.0.R` - the supporting R code that fits the splines and extracts the useful metrics. This code *can* be run on its own in R without the GUI  
+`PFunc.py` - the main file to run for the full PFunc GUI experience  
+`PFunc_RCode.R` - the supporting R code that fits the splines and extracts the useful metrics. This code *can* be run on its own in R without the GUI  
 `README.pdf` - important information for installing and using the program  
 `demo_data_horizontal.csv` - example data in one of two possible layouts  
 `demo_data_vertical.csv` - example data in one of two possible layouts  
-`PFunc_Icon.png` - icon file  
+`PFuncIcon.png` - icon file  
 `PFuncPath.txt` - may help users who encounter path-related errors  
 `COPYING.txt` - the full GPLv3 license  
 
@@ -102,13 +102,13 @@ Regardless of which layout option you choose, you must save your data as a **.cs
 
 ### Running the PFunc GUI  
 #### Startup  
-You have several different options for running PFunc. Make sure that `PFunc_GUI_0.9.0.py` and `PFunc_Rcode_0.9.0.R` are together in the same directory. If you encounter an error, see the Troubleshooting section below.
+You have several different options for running PFunc. Make sure that `PFunc.py` and `PFunc_RCode.R` are together in the same directory. If you encounter an error, see the Troubleshooting section below.
  * **Option 1: Run PFunc through IDLE**  
- The most straightforward way to run PFunc is through IDLE. Right-click (or the equivalent on a Mac) on the `PFunc_GUI_0.9.0.py` file, and choose to "Open With..." IDLE (or "Edit With Idle" on Windows if that option is available). This will start up IDLE with the code for PFunc displayed in a window. Click on the window of colorful code to make sure it is the current active window, and then run the code either by pressing F5 or by clicking Run > Run Module in the menu at the top bar.
+ The most straightforward way to run PFunc is through IDLE. Right-click (or the equivalent on a Mac) on the `PFunc.py` file, and choose to "Open With..." IDLE (or "Edit With Idle" on Windows if that option is available). This will start up IDLE with the code for PFunc displayed in a window. Click on the window of colorful code to make sure it is the current active window, and then run the code either by pressing F5 or by clicking Run > Run Module in the menu at the top bar.
  * **Option 2: Run PFunc from the command line**  
    * Take note of the directory where PFunc is saved.
    * Open up an instance of your terminal (command prompt in Windows) and navigate to the PFunc directory using the `cd` command. Examples: `cd "C:\Users\name\PFunc"` in Windows; `cd "/Users/name/PFunc"` in Mac OS X; `cd "/home/name/PFunc"` in Linux.
-   * Then enter this command for Windows: `python PFunc_GUI_0.9.0.py` (or if that doesn't work, try: `py PFunc_GUI_0.9.0.py`), or this command for Mac or Linux: `python3 PFunc_GUI_0.9.0.py`.
+   * Then enter this command for Windows: `python PFunc.py` (or if that doesn't work, try: `py PFunc.py`), or this command for Mac or Linux: `python3 PFunc.py`.
  * **Troubleshooting**  
  You might encounter an error while trying to run PFunc if rpy2 has trouble finding R on your computer. One sign of this error is if the error message mentions R_HOME or PATH. To solve this, you'll have to find where R is installed on your computer and follow the instructions in the `PFuncPath.txt` file that accompanies this program.
 
@@ -171,10 +171,10 @@ Here are descriptions of the various output options available under the File men
 If you are comfortable working in the R command line environment, you may use Pfunc without the GUI. Note that when PFunc is used this way, data **must** be set up in the horizontal format (as in `demo_data_horizontal.csv`), never in the vertical format (as in `demo_data_vertical.csv`).
 
 #### Startup
-Open R. Set the working directory to wherever the `PFunc_Rcode_0.9.0.R` file is saved on your computer.  
+Open R. Set the working directory to wherever the `PFunc_RCode.R` file is saved on your computer.  
 * One way to do this is by finding the directory path and entering the command `setwd(directory/path)`. You can check your current working directory with the command `getwd()`.
 * There is another way to do this if you are not running R directly from your terminal. Depending on your version of R, you will find the option either under "File > Change dir..." or "Misc > Change Working Directory..."
-* Load the script into R with this command `source(PFunc_Rcode_0.9.0.R)`
+* Load the script into R with this command `source(PFunc_RCode.R)`
 * Load your data into R with a command like `mydata <- read.csv("datafile.csv")`
 * Now you can run the default analysis on your data with the command `PFunc(mydata)`. See below for a full set of options.  
 
@@ -226,7 +226,7 @@ Here is a list of arguments that you can specify when calling PFunc directly fro
 
 * `drop` - specify how far down from the peak of the function that tolerance (the width) should be measured (default = 1/3).
 
-* `tol.mode` - how would you like the script to calculate tolerance? The default value "norm" looks at the width of the function under the main peak plus any other areas at that same *y*-value that may be under secondary peaks. The alternative value "strict" only counts the width of the part of the function that contains the main peak and ignores other peaks, even if they rise above the chosen *y*-value.
+* `tol.mode` - how would you like the script to calculate tolerance? The default value "broad" (alternatively "norm") looks at the width of the function under the main peak plus any other areas at that same *y*-value that may be under secondary peaks. The alternative value "strict" only counts the width of the part of the function that contains the main peak and ignores other peaks, even if they rise above the chosen *y*-value.
 
 * `tol.floor` - this specifies the baseline of the data. It is used in conjunction with `drop` to determine the height where tolerance should be measured. For example, if `drop` equals 1/3, and `floor` equals 0, then tolerance will be measured at 1/3 of the distance from the peak to 0 (default = 0).
 
@@ -260,7 +260,7 @@ Many thanks to Rafael Rodríguez, Kasey Fowler-Finn, Gerlinde Höbel, David Gray
 Contact
 ---
 For comments or questions, contact Joey Kilmer at joeykilmer@gmail.com.  
-Get the latest version of PFunc at <https://github.com/Joccalor/PFunc>
+Get the latest version of PFunc at <https://github.com/Joccalor/PFunc/releases/latest>
 
 License
 ---
