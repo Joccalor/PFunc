@@ -772,7 +772,7 @@ InCheck <- function (term, domain){
 
 
 # Load confirmation:
-print("PFunc version 0.10.0 (2017-05-18) successfully loaded.")
+print("PFunc version 1.0.0 (2017-05-18) successfully loaded.")
 
 
 # 5 Changelog

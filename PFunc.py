@@ -1852,7 +1852,7 @@ class AboutWindow(PFuncToplevel):
         self.title_text = 'PFunc'
         self.subtitle_text = ('A tool for analyzing preference functions and '
                               'other function-valued traits.\n')
-        self.version_text = 'version 0.10.0 \n (2017-05-18)\n'
+        self.version_text = 'version 1.0.0 \n (2017-05-18)\n'
         self.copyright_text = ('Copyright (C) 2016, 2017 Joseph Kilmer \n\n'
                                'PFunc is distributed under the GNU General '
                                'Public License v3. A full copy of\n'

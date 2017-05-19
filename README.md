@@ -2,7 +2,7 @@ PFunc
 ===
 PFunc is a set of tools for fitting and analyzing function-valued traits. It was designed for quantifying preference functions (hence the name) in biological studies of sexual selection and evolution of mate preferences. PFunc accepts a bivariate dataset composed of stimuli and responses to those stimuli as its input. It then fits cubic splines to these data using the gam function in R, and it displays the curves, along with several useful measurements of the shape of the curve. Users have several options for adjusting the curves and the tools used to measure the curves, and for outputting results for further analysis.
 
-This file was last updated 2017-05-18 for PFunc version 0.10.0.
+This file was last updated 2017-05-18 for PFunc version 1.0.0.
 
 Table of Contents
 ---
@@ -68,7 +68,7 @@ In the fullness of time, we aim to wrap PFunc up in a single easy-to-use executa
 
 ##### A note on package versions
 PFunc was written with particular versions of software and packages in mind. Given that PFunc depends on these packages to run, it is possible that at some point in the future, these packages could be updated in a way that negatively impacts the functionality of PFunc. If this happens, you have two options:
-  * Check http://github.com/joccalor/pfunc for updated PFunc code that is compatible with the new versions of the packages.  
+  * Check <https://github.com/Joccalor/PFunc/releases/latest> for the most recent version of PFunc.  
 
 or:
   * Search online for old versions of the packages that work with this version of PFunc. Below is a list of versions known to work with PFunc. These packages should all be archived online. Don't worry if you cannot find these exact versions; other close versions will probably function just fine.
@@ -260,7 +260,7 @@ Many thanks to Rafael Rodríguez, Kasey Fowler-Finn, Gerlinde Höbel, David Gray
 Contact
 ---
 For comments or questions, contact Joey Kilmer at joeykilmer@gmail.com.  
-Get the latest version of PFunc at <https://github.com/Joccalor/PFunc/releases/latest>
+Find PFunc on GitHub at <https://github.com/Joccalor/PFunc>, or download the latest version at <https://github.com/Joccalor/PFunc/releases/latest>
 
 License
 ---
