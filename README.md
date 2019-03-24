@@ -175,7 +175,7 @@ If you are comfortable working in the R command line environment, you may use Pf
 Open R. Set the working directory to wherever the `PFunc_RCode.R` file is saved on your computer.  
 * One way to do this is by finding the directory path and entering the command `setwd(directory/path)`. You can check your current working directory with the command `getwd()`.
 * There is another way to do this if you are not running R directly from your terminal. Depending on your version of R, you will find the option either under "File > Change dir..." or "Misc > Change Working Directory..."
-* Load the script into R with this command `source(PFunc_RCode.R)`
+* Load the script into R with this command `source("PFunc_RCode.R")`
 * Load your data into R with a command like `mydata <- read.csv("datafile.csv")`
 * Now you can run the default analysis on your data with the command `PFunc(mydata)`. See below for a full set of options.  
 
