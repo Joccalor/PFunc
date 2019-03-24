@@ -73,11 +73,11 @@ PFunc was written with particular versions of software and packages in mind. Giv
 
 or:
   * Search online for old versions of the packages that work with this version of PFunc. Below is a list of versions known to work with PFunc. These packages should all be archived online. Don't worry if you cannot find these exact versions; other close versions will probably function just fine.
-    * R 3.3.1
-    * mgcv 1.8-17
-    * Python 3.5.2
-    * matplotlib 1.5.3 and 2.0.1
-    * rpy2 2.8.5  
+    * R 3.3.1, 3.5.1
+    * mgcv 1.8-17, 1.8-27
+    * Python 3.5.2, 3.7.1
+    * matplotlib 1.5.3, 2.0.1, 3.0.3
+    * rpy2 2.8.5, 3.0.1  
 
     For packages installed through pip, you can specify a version number with the double equals sign (==). So for example, if you were to want to uninstall your current version of matplotlib and install version 1.5.3, you would use these commands:  
     `pip uninstall matplotlib`  
