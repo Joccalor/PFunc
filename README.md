@@ -44,6 +44,7 @@ In the fullness of time, we aim to wrap PFunc up in a single easy-to-use executa
 #### 1. Install and Set Up R  
   1. Visit <https://cran.r-project.org/> and follow the links to download the latest version of R for your operating system. Install R as you would a normal program.  
   **Note for Windows users:** The setup wizard will give you the option of installing the 32-bit files or the 64-bit files. Install both.  
+  **Note for Mac users:** As noted on the R homepage, you will likely need to install XQuartz <https://www.xquartz.org/>.  
   **Note for Linux users:** You may instead install R from the command line.  
 
   2. Install the mgcv package in R by opening R and entering the following command: `install.packages("mgcv")`. You will be prompted to select a mirror from which to download the package. Select an option that is relatively close to your location. Follow any instructions R gives you for installing the package.  
