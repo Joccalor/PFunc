@@ -414,7 +414,7 @@ class GraphArea(Frame):
                 self.slot_dict[counter] = self.fig.add_subplot(
                     '33%d' % counter, axisbg=individual.background)
             slot = self.slot_dict[counter]
-            slot.tick_params(labelsize=10, top='off', right='off')
+            slot.tick_params(labelsize=10, top=False, right=False)
             slot.spines['top'].set_visible(False)
             slot.spines['right'].set_visible(False)
             self.tcid_tols[str(slot.axes)] = counter
@@ -453,7 +453,7 @@ class GraphArea(Frame):
             slot = self.fig.add_subplot('111', facecolor=individual.background)
         else:
             slot = self.fig.add_subplot('111', axisbg=individual.background)
-        slot.tick_params(labelsize=20, top='off', right='off', pad=8)
+        slot.tick_params(labelsize=20, top=False, right=False, pad=8)
         slot.spines['top'].set_visible(False)
         slot.spines['right'].set_visible(False)
         self.current_page.set(individual.page)
@@ -558,7 +558,7 @@ class GraphArea(Frame):
         if slot != '':
             slot_item = self.slot_dict[slot]
             slot_item.clear()
-            slot_item.tick_params(labelsize=10, top='off', right='off')
+            slot_item.tick_params(labelsize=10, top=False, right=False)
             individual = self.individual_dict[self.current_col.get()]
             self.tcid_tols[str(slot_item.axes)] = slot
             self.individual_slot_dict[slot] = self.current_col.get()
@@ -575,7 +575,7 @@ class GraphArea(Frame):
             slot = self.fig.add_subplot('111', facecolor=individual.background)
         else:
             slot = self.fig.add_subplot('111', axisbg=individual.background)
-        slot.tick_params(labelsize=20, top='off', right='off', pad=8)
+        slot.tick_params(labelsize=20, top=False, right=False, pad=8)
         slot.spines['top'].set_visible(False)
         slot.spines['right'].set_visible(False)
         self.draw_graph(slot, individual)
