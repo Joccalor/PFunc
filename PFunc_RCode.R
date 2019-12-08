@@ -3,7 +3,7 @@
 # This file is part of PFunc. PFunc provides a set of simple tools for users
 # to analyze preference functions and other function-valued traits.
 #
-# Copyright 2016, 2017 Joseph Kilmer
+# Copyright 2016-2019 Joseph Kilmer
 #
 # PFunc is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
