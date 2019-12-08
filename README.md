@@ -265,7 +265,7 @@ Find PFunc on GitHub at <https://github.com/Joccalor/PFunc>, or download the lat
 
 License
 ---
-Copyright (C) 2016, 2017 Joseph Kilmer
+Copyright (C) 2016-2019 Joseph Kilmer
 
 PFunc is distributed under the GNU General Public License v3. A full copy of the license is available in the accompanying file called COPYING.txt.
 
