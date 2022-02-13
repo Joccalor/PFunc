@@ -3,7 +3,7 @@
 # This file is part of PFunc. PFunc provides a set of simple tools for users
 # to analyze preference functions and other function-valued traits.
 #
-# Copyright 2016, 2017 Joseph Kilmer
+# Copyright 2016-2022 Joseph Kilmer
 #
 # PFunc is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -194,7 +194,7 @@ CheckValues <- function(input.data, k, blacklist, whitelist,
     stop("Input data must have at least 2 rows")
   }
 
-  if (length(unique(input.data[1,])) < 10) {
+  if (length(unique(input.data[,1])) < 10) {
     if (!forgui) {
       print("    Your input data has fewer than ten rows.
       As a result, the degrees of freedom for the smoothing
@@ -202,7 +202,7 @@ CheckValues <- function(input.data, k, blacklist, whitelist,
       In most cases, this is not a problem.
       Consider lowering 'min.sp'.")
     }
-    k <- length(unique(input.data[1,]))
+    k <- length(unique(input.data[,1]))
   }
 
   if (is.vector(blacklist) & is.vector(whitelist)) {
