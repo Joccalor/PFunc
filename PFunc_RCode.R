@@ -194,7 +194,7 @@ CheckValues <- function(input.data, k, blacklist, whitelist,
     stop("Input data must have at least 2 rows")
   }
 
-  if (length(unique(input.data[1,])) < 10) {
+  if (length(unique(input.data[,1])) < 10) {
     if (!forgui) {
       print("    Your input data has fewer than ten rows.
       As a result, the degrees of freedom for the smoothing
@@ -202,7 +202,7 @@ CheckValues <- function(input.data, k, blacklist, whitelist,
       In most cases, this is not a problem.
       Consider lowering 'min.sp'.")
     }
-    k <- length(unique(input.data[1,]))
+    k <- length(unique(input.data[,1]))
   }
 
   if (is.vector(blacklist) & is.vector(whitelist)) {
