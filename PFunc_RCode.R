@@ -40,7 +40,7 @@ if (!"package:mgcv" %in% search()) {
 # 4 Functions
 PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
                 auto.sort = TRUE,
-                blacklist = NULL, whitelist = NULL,
+                blocklist = NULL, allowlist = NULL,
                 sp.binding = TRUE, sp.assign = 0,
                 max.sp = 5, min.sp = 0.05, k = -1,
                 peak.within = 1,
@@ -55,15 +55,15 @@ PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
                 forgui = FALSE) {
   # This is the primary function to call. All others below are secondary.
   # See the README file for argument definitions and examples of use.
-  k <- CheckValues(input.data, k, blacklist,
-                   whitelist, sp.assign, max.sp, min.sp,
+  k <- CheckValues(input.data, k, blocklist,
+                   allowlist, sp.assign, max.sp, min.sp,
                    peak.within, forgui)
   if (max.y == 0) {
     max.y <- CalculateMaxY(input.data)
   }
   orig.input.names <- names(input.data)
 
-  input.data <- BlackWhiteList(input.data, blacklist, whitelist)
+  input.data <- BlockOrAllowList(input.data, blocklist, allowlist)
 
   names(input.data)[1] <- "stimulus"
   input.stimuli <- input.data$stimulus
@@ -180,7 +180,7 @@ PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
 
 # Secondary Function Definitions:
 
-CheckValues <- function(input.data, k, blacklist, whitelist,
+CheckValues <- function(input.data, k, blocklist, allowlist,
                         sp.assign, max.sp, min.sp,
                         peak.within, forgui) {
   # This function checks over several of the settings and helps the user
@@ -205,8 +205,8 @@ CheckValues <- function(input.data, k, blacklist, whitelist,
     k <- length(unique(input.data[,1]))
   }
 
-  if (is.vector(blacklist) & is.vector(whitelist)) {
-    stop("You may not use black.list and white.list simultaneously")
+  if (is.vector(blocklist) & is.vector(allowlist)) {
+    stop("You may not use block.list and allow.list simultaneously")
   }
 
   if (max.sp < min.sp) {
@@ -232,21 +232,21 @@ CalculateMaxY <- function(input.data) {
 }
 
 
-BlackWhiteList <- function(input.data, blacklist, whitelist) {
-  # Excludes individuals listed in the blacklist OR includes only those
-  # individuals in the whitelist. The two are not to be used simultaneously.
-  # When they are, whitelist takes precedence.
+BlockOrAllowList <- function(input.data, blocklist, allowlist) {
+  # Excludes individuals listed in the blocklist OR includes only those
+  # individuals in the allowlist. The two are not to be used simultaneously.
+  # When they are, allowlist takes precedence.
   all.names <- names(input.data)
   all.columns <- 1:ncol(input.data)
   used.list <- all.columns
   first.column <- input.data[1]
 
-  if (is.vector(blacklist)) {
-    used.list <- blacklist
+  if (is.vector(blocklist)) {
+    used.list <- blocklist
   }
 
-  if (is.vector(whitelist)) {
-    used.list <- whitelist
+  if (is.vector(allowlist)) {
+    used.list <- allowlist
   }
 
   if (is.character(used.list)) {
@@ -259,7 +259,7 @@ BlackWhiteList <- function(input.data, blacklist, whitelist) {
     used.columns <- used.list
   }
 
-  if (is.vector(blacklist)) {
+  if (is.vector(blocklist)) {
     used.columns <- which(!all.columns %in% used.columns)
   }
 

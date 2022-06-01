@@ -2,7 +2,7 @@ PFunc
 ===
 PFunc is a set of tools for fitting and analyzing function-valued traits. It was designed for quantifying preference functions (hence the name) in biological studies of sexual selection and evolution of mate preferences. PFunc accepts a bivariate dataset composed of stimuli and responses to those stimuli as its input. It then fits cubic splines to these data using the gam function in R, and it displays the curves, along with several useful measurements of the shape of the curve. Users have several options for adjusting the curves and the tools used to measure the curves, and for outputting results for further analysis.
 
-This file was last updated 2017-05-18 for PFunc version 1.0.0.
+This file was last updated 2022-06-01 for PFunc version 1.1.0.
 
 Table of Contents
 ---
@@ -190,9 +190,9 @@ Here is a list of arguments that you can specify when calling PFunc directly fro
 
 * `auto.sort` - an option to sort the data by increasing values of the stimulus variable (default = TRUE).
 
-* `blacklist` - if there are columns of your data that you wish to exclude from analysis, place their numbers in this argument with the concatenate `c()` function. For example, to exclude the third and fourth columns, set `blacklist = c(3, 4)` (default = NULL).
+* `blocklist` - if there are columns of your data that you wish to exclude from analysis, place their numbers in this argument with the concatenate `c()` function. For example, to exclude the third and fourth columns, set `blocklist = c(3, 4)` (default = NULL).
 
-* `whitelist` - if there are only a few specific columns of your data that you wish to analyze and exclude the rest, you can place the included columns' numbers in the whitelist with the concatenate `c()` function. For example, to include only the third and fourth columns in analysis, set `whitelist = c(3, 4)` (default = NULL).
+* `allowlist` - if there are only a few specific columns of your data that you wish to analyze and exclude the rest, you can place the included columns' numbers in the allowlist with the concatenate `c()` function. For example, to include only the third and fourth columns in analysis, set `allowlist = c(3, 4)` (default = NULL).
 
 * `sp.binding` - when true, it constrains the auto-generated smoothing parameters to be between `min.sp` and `max.sp` (see below) (default = TRUE).
 
@@ -265,7 +265,7 @@ Find PFunc on GitHub at <https://github.com/Joccalor/PFunc>, or download the lat
 
 License
 ---
-Copyright (C) 2016-2019 Joseph Kilmer
+Copyright (C) 2016-2022 Joseph Kilmer
 
 PFunc is distributed under the GNU General Public License v3. A full copy of the license is available in the accompanying file called COPYING.txt.
 
