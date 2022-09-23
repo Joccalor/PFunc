@@ -2,7 +2,7 @@ PFunc
 ===
 PFunc is a set of tools for fitting and analyzing function-valued traits. It was designed for quantifying preference functions (hence the name) in biological studies of sexual selection and evolution of mate preferences. PFunc accepts a bivariate dataset composed of stimuli and responses to those stimuli as its input. It then fits cubic splines to these data using the gam function in R, and it displays the curves, along with several useful measurements of the shape of the curve. Users have several options for adjusting the curves and the tools used to measure the curves, and for outputting results for further analysis.
 
-This file was last updated 2022-08-21 for PFunc version 1.0.3.
+This file was last updated 2022-09-22 for PFunc version 1.0.3.
 
 Table of Contents
 ---
