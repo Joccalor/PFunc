@@ -104,28 +104,33 @@ Special thanks to Peter Naylor for helping us with this <https://github.com/Pete
   **For Windows users:** You'll need to install VcXsrv <https://sourceforge.net/projects/vcxsrv/> or another similar X server.
   **For Mac users:** Make sure XQuartz is installed (you probably did this while installing R above) <https://www.xquartz.org/>. Once installed, open XQuartz, go to Preferences > Security and tick the box that says, "allow connections from network clients."
 
-#### 2. Create the Docker image
+#### 2. Acquire the PFunc Docker image
   1. Start Docker.  
   2. Open a terminal window (as described above in Install and Set Up Python).
-  3. In the terminal, navigate to where you downloaded this PFunc project from github.
-  **Note:** If there are spaces anywhere in your filepath, you need to surround the filepath with quotation marks.
-  **For Windows users:** for example if you downloaded the PFunc files to your desktop, the command would follow this format: `cd c:\users\username\Desktop\PFunc`
-  **For Mac users:** for example if you downloaded the PFunc files to your desktop, the command would follow this format: `cd /Users/username/Desktop/PFunc`
-  **For Linux users:** for example if you downloaded the PFunc files to your desktop, the command would follow this format: `cd /home/username/Desktop/PFunc`
-  4. Create the Docker image by running `sudo docker build -f DOCKER_PFunc.dockerfile . -t pfunc`
+  3. Run `docker pull joccalor/pfunc:latest`
+  **For Mac and Linux users:** you may need to run this with superuser permissions, like `sudo docker pull joccalor/pfunc:latest`
+  **Note:** the Docker build file (PFunc.dockerfile) is included for those who wish to inspect it or build their own PFunc images. Everyone else can ignore this file.
 
-#### 3. Run the Docker image
-  1. Sart Docker.
+#### 3. Run the PFunc Docker image the first time
+  1. Start Docker.
   **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.
-  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe).
-  2. In a terminal, navigate to your PFunc directory using `cd` as described above.
-  3. Start up the container with the appropriate terminal command
-  **Note:** Remember, if there are spaces anywhere in your filepath, you need to surround the filepath with quotation marks.
-  **For Windows users:** `sudo docker run --name PFunc -v %CD%:/root/PFunc -e DISPLAY=host.docker.internal:0 pfunc`
-  **For Mac users:** `sudo docker run --name PFunc -v $PWD:/root/PFunc -e DISPLAY=host.docker.internal:0 pfunc`
+  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.
+  2. Get the full path for where your data files are stored. In the commands below, replace DATAPATH with that filepath.
+  **Note:** If there are spaces anywhere in your filepath, you need to surround the filepath with quotation marks.
+  3. Start up the container with the appropriate terminal command below:
+  **For Windows users:** `docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`
+  **For Mac users:** `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`
   **For Linux users:**
-   `sudo docker run --name PFunc -v $PWD:/root/PFunc -v /tmp/.X11-unix/:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY pfunc`
-  4. Optional: You can add more folders to the Docker image by modifying the command above. The syntax for this is `-v /local/file/path:/docker/file/path`. For example, if you're on a Mac and you want to add a folder called "data" that's in your Documents directory, you would run `sudo docker run --name PFunc -v $PWD:/root/PFunc -v /home/username/Documents/data:/root/data -e DISPLAY=host.docker.internal:0 pfunc`
+   `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -v /tmp/.X11-unix/:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY joccalor/pfunc:latest`
+  **Note:** Instead of specifying the entire filepath, you can navigate to the location of your data using the `cd` command on the command line. Then in the place of DATAPATH in the commands above, you can just write the shortcut for the current directory. In Windwos it's %CD%, and in Mac and Linux it's $PWD.
+  **Note:** You'll need to run these steps again anytime you want to specify a new location for your data on your computer.
+  **Note:** This command will name the container "PFunc". You can assign a different name by chaning what comes directly after "--name" in the command.
+
+#### 4. Start an existing the PFunc Docker container
+  1. Start Docker.
+  **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.
+  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.
+  2. Start the PFunc container either from the Docker UI or from the command line with `docker start PFunc` (or if you gave your container a different name, replace "PFunc" with that name).
 
 Usage
 ---
