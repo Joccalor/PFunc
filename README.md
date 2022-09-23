@@ -2,15 +2,17 @@ PFunc
 ===
 PFunc is a set of tools for fitting and analyzing function-valued traits. It was designed for quantifying preference functions (hence the name) in biological studies of sexual selection and evolution of mate preferences. PFunc accepts a bivariate dataset composed of stimuli and responses to those stimuli as its input. It then fits cubic splines to these data using the gam function in R, and it displays the curves, along with several useful measurements of the shape of the curve. Users have several options for adjusting the curves and the tools used to measure the curves, and for outputting results for further analysis.
 
-This file was last updated 2017-05-18 for PFunc version 1.0.0.
+This file was last updated 2022-09-22 for PFunc version 1.0.3.
 
 Table of Contents
 ---
 1. Files
-2. Setup
+2. Setup Overview
+3. Setup Option 1: Script
   * Install and Set Up R
   * Install and Set Up Python
-3. Usage
+4. Setup Option 2: Docker
+5. Usage
   * Data Input
   * Running the PFunc GUI
     * Startup
@@ -22,70 +24,118 @@ Table of Contents
     * Startup
     * Arguments of PFunc
     * Examples
-4. Acknowledgements
-5. Contact
-6. License
+6. Acknowledgements
+7. Contact
+8. License
 
 Files
 ---
 `PFunc.py` - the main file to run for the full PFunc GUI experience  
 `PFunc_RCode.R` - the supporting R code that fits the splines and extracts the useful metrics. This code *can* be run on its own in R without the GUI  
+`README.md` - important information for installing and using the program  
 `README.pdf` - important information for installing and using the program  
 `demo_data_horizontal.csv` - example data in one of two possible layouts  
 `demo_data_vertical.csv` - example data in one of two possible layouts  
+`PFunc.dockerfile` - Docker build file for people wanting to run PFunc in a container  
 `PFuncIcon.png` - icon file  
 `PFuncPath.txt` - may help users who encounter path-related errors  
 `COPYING.txt` - the full GPLv3 license  
 
-Setup
+Setup Overview
 ---
-In the fullness of time, we aim to wrap PFunc up in a single easy-to-use executable file. For now however, some hands-on setup is required. Follow these steps to setup PFunc on Windows, Mac OS X or Linux systems.
+There are two broad approaches you can take when it comes to setting up PFunc on your computer:
+
+**OPTION 1** Install Python and R, along with the necessary supporting packages, and run the script directly on your computer.
+  Pros: Lighter on system resources.
+  Cons: A future update for Python or R could mess something up in the script.
+
+**OPTION 2** Run PFunc inside of a Docker container.
+  Pros: Once it's set up, it will always work, because the core program versions will never change.
+  Cons: Docker can take up a bunch of system resources, so you might not get the best performance on old or cheap computers.
+  Also note: You'll have to sign up for a Docker account and you'll need admin privileges on the computer, so if your computer is managed by your university/employer, you might need special permission to install and run Docker.
+
+Setup Option 1: Script
+---
+#### A note on package versions
+PFunc was written with particular versions of software and packages in mind. Given that PFunc depends on these packages to run, it is possible that dow the road, these packages could be updated in a way that negatively impacts the functionality of PFunc. If this happens, you have two options:
+  * Check <https://github.com/Joccalor/PFunc/releases/latest> for the most recent version of PFunc to see if we've updated it to run with newer packages.  
+
+or:
+  * Search online for old versions of the packages that work with this version of PFunc. Below is a list of versions known to work with PFunc. These packages should all be archived online. Don't worry if you cannot find these exact versions; other close versions will probably function just fine.
+    * R 3.3.1, 3.5.1, 3.6.1, 4.2.1
+    * mgcv 1.8-17, 1.8-27, 1.8-40
+    * Python 3.5.2, 3.7.1
+    * matplotlib 1.5.3, 2.0.1
+    * rpy2 2.8.5, 3.0.1, 3.5.3  
+
+    For packages installed through pip, you can specify a version number with the double equals sign (==). So for example, if you were to want to uninstall your current version of matplotlib and install version 2.0.1, you would use these commands:  
+    `pip uninstall matplotlib`  
+    `pip install matplotlib==2.0.1`  
 
 #### 1. Install and Set Up R  
   1. Visit <https://cran.r-project.org/> and follow the links to download the latest version of R for your operating system. Install R as you would a normal program.  
-  **Note for Windows users:** The setup wizard will give you the option of installing the 32-bit files or the 64-bit files. Install both.  
-  **Note for Mac users:** As noted on the R homepage, you will likely need to install XQuartz <https://www.xquartz.org/>.  
-  **Note for Linux users:** You may instead install R from the command line.  
+  **For Windows users:** The setup wizard will give you the option of installing the 32-bit files or the 64-bit files. Install both.  
+  **For Mac users:** As noted on the R homepage, you will need to install XQuartz <https://www.xquartz.org/>.  
+  **For Linux users:** You may instead install R from the command line.  
 
   2. Install the mgcv package in R by opening R and entering the following command: `install.packages("mgcv")`. You will be prompted to select a mirror from which to download the package. Select an option that is relatively close to your location. Follow any instructions R gives you for installing the package.  
 
 #### 2. Install and Set Up Python  
-  1. Visit <https://www.python.org/> and follow the links to download the latest version of Python 3.x for your operating system. Install python as you would a normal program.  
-  **Note for Windows users:** the first screen of the installation wizard will ask if you want to add Python to PATH. Make sure to select this option.  
-  **Note for Linux users:** you may instead install Python from the command line.  
+  1. Visit <https://www.python.org/> and follow the links to download the latest version of Python 3.x for your operating system. Install Python as you would a normal program.  
+  **Note:** If you run into display issues with the latest version of Python, try downloading and installing Python version 3.7.1 instead <https://www.python.org/downloads/release/python-371/>. You can tell your computer to run this specific version by using `pip3.7` and `python3.7` where appropriate in the commands below.   
+  **For Windows users:** the first screen of the installation wizard will ask if you want to add Python to PATH. Make sure to select this option.  
+  **For Linux users:** you may instead install Python from the command line.  
 
-  2. Install the matplotlib Python library. To do this, open up the terminal (if you are not sure how, run a search for "terminal" or "command prompt" on your computer), and run one of the following commands.  
-  **For Windows users:** enter this command: `pip install matplotlib`. If that doesn't work, try calling pip this way instead: `py -m pip install matplotlib`  
-  **For Mac and Linux users:** enter this command: `pip3 install matplotlib`  
+  2. Install the required Python libraries (matplotlib and rpy2). To do this, open up the terminal (if you are not sure how, run a search for "terminal" or "command prompt" on your computer), and run one of the following commands.  
+  **Note:** You may encounter display issues with newer versions of matplotlib. If you do, you can install version 2.0.1 instead by relpacing `matplotlib` with `matplotlib==2.0.1` in the commands below.
+  **For Windows users:** enter this command: `pip install matplotlib rpy2`. If that doesn't work, try calling pip this way instead: `py -m pip install matplotlib rpy2`  
+  **For Mac and Linux users:** enter this command: `pip3 install matplotlib rpy2`. If your computer doesn't recognize pip3, try using `pip install matplotlib rpy2` instead.  
 
-  3. Install the rpy2 Python library.  
-  **For Windows users:** Go to <http://www.lfd.uci.edu/~gohlke/pythonlibs/#rpy2> and download one of the rpy2.whl files. More likely than not, you're going to have to try a few before you find one that works, so be patient here. These files are named in the following format: `rpy2-[chunk1]-[chunk2]-[chunk3]-[chunk4].whl`. [chunk1] is the version of rpy2--generally the more recent the version, the better. [chunk2] points to the version of Python that this file works with, for example, cp35 means it works with Python 3.5; cp36 works with Python 3.6, etc. Choose one that matches your version of Python. [chunk4] tells you something about the processor architecture that the file is expecting to run on. `win32` means it's looking for a 32-bit processor, and `win_amd64` means it's looking for a 64-bit processor. Note, however, that depending on how Python or R are set up on your system, you may have to use a file marked as `win32` even if you have 64-bit Windows.  
-   * Download the rpy2.whl file, and take note of the directory path where you save it.  
-   * Enter the following command in the command prompt (like in the previous step), substituting the directory path below for the one where you saved the rpy2.whl file:  
-  `pip install "C:\Users\name\Downloads\rpy2-2.8.3-cp35-cp35m-win32.whl"` (and again, if you can't call pip directly, try `py -m pip install...` instead).  
-    * If you encounter an error, it's likely you'll have to download a different rpy2.whl file from the list and try installing it using these same steps.  
+  You are now ready to run PFunc.  
 
-  **For Linux and Mac users:** The process is much simpler. Enter the following command in the terminal, just like with the previous step: `pip3 install rpy2`  
+Setup Option 2: Docker
+---
+If the script setup described above worked for you, you can skip this section and continue to the usage section below.  
 
-##### A note on package versions
-PFunc was written with particular versions of software and packages in mind. Given that PFunc depends on these packages to run, it is possible that at some point in the future, these packages could be updated in a way that negatively impacts the functionality of PFunc. If this happens, you have two options:
-  * Check <https://github.com/Joccalor/PFunc/releases/latest> for the most recent version of PFunc.  
+Special thanks to Peter Naylor for helping us with this <https://github.com/PeterJackNaylor>.  
 
-or:
-  * Search online for old versions of the packages that work with this version of PFunc. Below is a list of versions known to work with PFunc. These packages should all be archived online. Don't worry if you cannot find these exact versions; other close versions will probably function just fine.
-    * R 3.3.1, 3.5.1
-    * mgcv 1.8-17, 1.8-27
-    * Python 3.5.2, 3.7.1
-    * matplotlib 1.5.3, 2.0.1, 3.0.3
-    * rpy2 2.8.5, 3.0.1  
+#### 1. Install and Set Up Docker
+  1. Download and install Docker <https://docs.docker.com/engine/install/>  
+  **Note:** As part of setup, you will likely have to sign up for a (free) Docker account.  
+  **For Windows users:** You'll need to install VcXsrv <https://sourceforge.net/projects/vcxsrv/> or another similar X server.  
+  **For Mac users:** Make sure XQuartz is installed (you probably did this while installing R above) <https://www.xquartz.org/>. Once installed, open XQuartz, go to Preferences > Security and tick the box that says, "allow connections from network clients."  
 
-    For packages installed through pip, you can specify a version number with the double equals sign (==). So for example, if you were to want to uninstall your current version of matplotlib and install version 1.5.3, you would use these commands:  
-    `pip uninstall matplotlib`  
-    `pip install matplotlib==1.5.3`  
+#### 2. Acquire the PFunc Docker image
+  1. Start Docker.  
+  2. Open a terminal window (as described above in Install and Set Up Python).  
+  3. Run `docker pull joccalor/pfunc:latest`  
+  **For Mac and Linux users:** you may need to run this with superuser permissions, like `sudo docker pull joccalor/pfunc:latest`  
+  **Note:** the Docker build file (PFunc.dockerfile) is included for those who wish to inspect it or build their own PFunc images. Everyone else can ignore this file.  
+
+#### 3. Run the PFunc Docker image the first time
+  1. Start Docker.
+  **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.  
+  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.  
+  2. Get the full path for where your data files are stored. In the commands below, replace DATAPATH with that filepath.  
+  **Note:** If there are spaces anywhere in your filepath, you need to surround the filepath with quotation marks.
+  3. Start up the container with the appropriate terminal command below:  
+  **For Windows users:** `docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`  
+  **For Mac users:** `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`  
+  **For Linux users:**
+   `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -v /tmp/.X11-unix/:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY joccalor/pfunc:latest`  
+  **Note:** Instead of specifying the entire filepath, you can navigate to the location of your data using the `cd` command on the command line. Then in the place of DATAPATH in the commands above, you can just write the shortcut for the current directory. In Windwos it's %CD%, and in Mac and Linux it's $PWD.  
+  **Note:** You'll need to run these steps again anytime you want to specify a new location for your data on your computer.  
+  **Note:** This command will name the container "PFunc". You can assign a different name by chaning what comes directly after "--name" in the command.  
+
+#### 4. Start an existing the PFunc Docker container
+  1. Start Docker.  
+  **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.  
+  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.  
+  2. Start the PFunc container either from the Docker UI or from the command line with `docker start PFunc` (or if you gave your container a different name, replace "PFunc" with that name).  
 
 Usage
 ---
-Below is a bare-bones overview of using PFunc. For more details on usage as well as general theory underlying the study of preference functions, check out our paper "Describing mate preferences and other function-valued traits" by Kilmer, Fowler-Finn, Gray, Höbel, Rebar, Reichert & Rodríguez in the Journal of Evolutionary Biology.
+Below is a bare-bones overview of using PFunc. For more details on usage as well as general theory underlying the study of preference functions, check out our paper "Describing mate preferences and other function-valued traits" (2017) by Kilmer, Fowler-Finn, Gray, Höbel, Rebar, Reichert & Rodríguez in the Journal of Evolutionary Biology 30(9):1658-1673; doi: 10.1111/jeb.13122.
 
 ### Data Input  
 PFunc is expecting data with two main components: a set of **stimuli** (plotted along the *x*-axis) and a set of **responses** to those stimulus values (plotted on the *y*-axis).  
@@ -190,9 +240,9 @@ Here is a list of arguments that you can specify when calling PFunc directly fro
 
 * `auto.sort` - an option to sort the data by increasing values of the stimulus variable (default = TRUE).
 
-* `blacklist` - if there are columns of your data that you wish to exclude from analysis, place their numbers in this argument with the concatenate `c()` function. For example, to exclude the third and fourth columns, set `blacklist = c(3, 4)` (default = NULL).
+* `blocklist` - if there are columns of your data that you wish to exclude from analysis, place their numbers in this argument with the concatenate `c()` function. For example, to exclude the third and fourth columns, set `blocklist = c(3, 4)` (default = NULL).
 
-* `whitelist` - if there are only a few specific columns of your data that you wish to analyze and exclude the rest, you can place the included columns' numbers in the whitelist with the concatenate `c()` function. For example, to include only the third and fourth columns in analysis, set `whitelist = c(3, 4)` (default = NULL).
+* `allowlist` - if there are only a few specific columns of your data that you wish to analyze and exclude the rest, you can place the included columns' numbers in the allowlist with the concatenate `c()` function. For example, to include only the third and fourth columns in analysis, set `allowlist = c(3, 4)` (default = NULL).
 
 * `sp.binding` - when true, it constrains the auto-generated smoothing parameters to be between `min.sp` and `max.sp` (see below) (default = TRUE).
 
@@ -265,7 +315,7 @@ Find PFunc on GitHub at <https://github.com/Joccalor/PFunc>, or download the lat
 
 License
 ---
-Copyright (C) 2016-2019 Joseph Kilmer
+Copyright (C) 2016-2022 Joseph Kilmer
 
 PFunc is distributed under the GNU General Public License v3. A full copy of the license is available in the accompanying file called COPYING.txt.
 

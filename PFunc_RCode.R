@@ -40,7 +40,7 @@ if (!"package:mgcv" %in% search()) {
 # 4 Functions
 PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
                 auto.sort = TRUE,
-                blacklist = NULL, whitelist = NULL,
+                blocklist = NULL, allowlist = NULL,
                 sp.binding = TRUE, sp.assign = 0,
                 max.sp = 5, min.sp = 0.05, k = -1,
                 peak.within = 1,
@@ -55,15 +55,15 @@ PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
                 forgui = FALSE) {
   # This is the primary function to call. All others below are secondary.
   # See the README file for argument definitions and examples of use.
-  k <- CheckValues(input.data, k, blacklist,
-                   whitelist, sp.assign, max.sp, min.sp,
+  k <- CheckValues(input.data, k, blocklist,
+                   allowlist, sp.assign, max.sp, min.sp,
                    peak.within, forgui)
   if (max.y == 0) {
     max.y <- CalculateMaxY(input.data)
   }
   orig.input.names <- names(input.data)
 
-  input.data <- BlackWhiteList(input.data, blacklist, whitelist)
+  input.data <- BlockOrAllowList(input.data, blocklist, allowlist)
 
   names(input.data)[1] <- "stimulus"
   input.stimuli <- input.data$stimulus
@@ -180,7 +180,7 @@ PFunc<-function(input.data, diagnose.col = 0, diagnose.sp = -1,
 
 # Secondary Function Definitions:
 
-CheckValues <- function(input.data, k, blacklist, whitelist,
+CheckValues <- function(input.data, k, blocklist, allowlist,
                         sp.assign, max.sp, min.sp,
                         peak.within, forgui) {
   # This function checks over several of the settings and helps the user
@@ -205,8 +205,8 @@ CheckValues <- function(input.data, k, blacklist, whitelist,
     k <- length(unique(input.data[,1]))
   }
 
-  if (is.vector(blacklist) & is.vector(whitelist)) {
-    stop("You may not use black.list and white.list simultaneously")
+  if (is.vector(blocklist) & is.vector(allowlist)) {
+    stop("You may not use block.list and allow.list simultaneously")
   }
 
   if (max.sp < min.sp) {
@@ -232,21 +232,21 @@ CalculateMaxY <- function(input.data) {
 }
 
 
-BlackWhiteList <- function(input.data, blacklist, whitelist) {
-  # Excludes individuals listed in the blacklist OR includes only those
-  # individuals in the whitelist. The two are not to be used simultaneously.
-  # When they are, whitelist takes precedence.
+BlockOrAllowList <- function(input.data, blocklist, allowlist) {
+  # Excludes individuals listed in the blocklist OR includes only those
+  # individuals in the allowlist. The two are not to be used simultaneously.
+  # When they are, allowlist takes precedence.
   all.names <- names(input.data)
   all.columns <- 1:ncol(input.data)
   used.list <- all.columns
   first.column <- input.data[1]
 
-  if (is.vector(blacklist)) {
-    used.list <- blacklist
+  if (is.vector(blocklist)) {
+    used.list <- blocklist
   }
 
-  if (is.vector(whitelist)) {
-    used.list <- whitelist
+  if (is.vector(allowlist)) {
+    used.list <- allowlist
   }
 
   if (is.character(used.list)) {
@@ -259,7 +259,7 @@ BlackWhiteList <- function(input.data, blacklist, whitelist) {
     used.columns <- used.list
   }
 
-  if (is.vector(blacklist)) {
+  if (is.vector(blocklist)) {
     used.columns <- which(!all.columns %in% used.columns)
   }
 
@@ -772,127 +772,4 @@ InCheck <- function (term, domain){
 
 
 # Load confirmation:
-print("PFunc version 1.0.0 (2017-05-18) successfully loaded.")
-
-
-# 5 Changelog
-#   170515: - Renamed full tolerance and norm tolerance to broad tolerance
-#   170512: - Added gam.object and is.flat to GUI output bundle
-#   170509: - Cleaned up code and added comments
-#   170508: - Updated wording in the output of the Diagnose function
-#           - Changed all references to peak stimulus to peak preference
-#           - Changed all gray strength to hi (height-independent) strength
-#           - Changed all cv strength to hd (height-dependent)
-#           - Created CheckForFlat function to increase modularity and reduce
-#             redundancy. Also changed variable flat to is.flat
-#   170504: - Separated CalculateMaxY function from main PFunc function
-#           - Separated GeneratePredictionLocations from main PFunc function
-#           - Removed WelcomeScreen function
-#   170309: - Updated draw graph function for gui group output
-#   161130: - Added option for peak.within to be a list of two numbers,
-#             corresponding to the x-axis values between which to check for
-#             peak.
-#   161129: - Changed default peak.within to 1
-#   161017: - Renamed the tol.type variable to tol.mode for consistency with
-#             the Python code.
-#   161012: - Broad tolerance can now be specified with either "norm" or
-#             "broad"
-#   160824: - Fixed the calculation of k in CheckValues so that it works with
-#             the GUI.
-#   160713: - Added support for outputting spline standard errors to the gui.
-#             The Peak function now always calculates standard error.
-#   160707: - Modified calculation of k in CheckValues to help with NAs
-#   160627: - Added a forgui conditional to the GraphSpline function that
-#             silences column number when outputting pdfs for GUI
-#   160620: - Silenced fewer-than-ten-points message when running in gui mode
-#           - Added tolerance floor option
-#   160503: - Updated file name and copyright statement
-#   160415: - Fixed the new tolerance function to accomodate flat data
-#   160414: - Altered summary output to include peak height, and updated HD, HI
-#             strength labels
-#   160413: - Cleaned up code
-#   160412: - Revised the points-out function so that when it is called in a
-#             normal run, it outputs all individuals, with names, without se.
-#   151130: - Redefined gray strength to be sd/range rather than range/sd.
-#             This way, as CV strength increases, so does gray strength.
-#             Note, gray strength should really be height-independent strength,
-#             and CV strength should be height-dependent strength (HI and HD).
-#   151120: - Completely re-wrote tolerance function to be more lightweight
-#             (from 140 lines to 75 lines)
-#
-#   151119: - Optimized PFunc so that its baseline spline is 201 points rather
-#             than putting a point every 0.01 x-axis units. Then for peak and
-#             tolerance, it zooms in another 201 points in the neighborhood to
-#             arrive at a precise point. This improves the script in two ways:
-#             1) It means that we're not generating points that don't add to
-#                the visual resolution of the curve (200 seems to be plenty--
-#                we were using 8001 before for most treehopper stuff!) -> more
-#                efficient!
-#             2) The script is now much more flexible for datasets in which the
-#                stimulus variable is on different orders of magnitude from
-#                what we're used to with the treehoppers -> more versitile!
-#
-#   140817: - Fixed minor bug (possibly related to a rounding error or floating
-#             decimals?) that prevented script from properly calculating
-#             "inner.max.index" under certain conditions:
-#             > a <- seq(0, 24, by = 0.01)
-#             > which(a == 20.4)
-#             integer(0)
-#           - Fixed by adding a round command to "predicting.stimuli"
-#
-#   130715: - Allowed user to define a min.sp equal max.sp for the purposes of
-#             imposing global smoothing parameters.
-#           - Tweaked error message that appears if max.sp is smaller than
-#             min.sp
-#
-#   130320: - Created a fix that puts the correct column number above the
-#             output graph when columns are whitelisted or blacklisted.
-#           - Fixed a bug in the "ghost" function, so now it makes proper
-#             use of the "flat" argument.
-#           - Improved "ghost" function so that now the ghosts follow spbinding
-#             rules.
-#
-#   130312: - Added column number to graph title for diagnostic function.
-#
-#   130308: - Added graph.sp argument, which prints sp onto pdf graphs when =T.
-#
-#   130127: - New file naming convention. It is still in the Year-Month-Day
-#             format, just without dashes, so it's more like YRMODA instead of
-#             YR-MO-DA
-#           - Minor bug fix-- Added "k" argument to Diagnostic Function input.
-#           - Minor bug fix-- Added "flat" to Diagnostic Function.
-#
-# 12-12-31: - Added printed statement signalling successful loading of script.
-#           - Blacklist and whitelist abilities now work properly.
-#
-# 12-12-28: - Replaced column.skip with blacklist and whitelist.
-#           - Individuals with uniform responses can now be evaluated.
-#           - Datasets with fewer than 10 responses can now be evaluated.
-#           - Output graphs now include column number along with column tile.
-#           - Added option to auto-sort rows if stimulus column is out
-#             of order.
-#           - Added "library()" statement to automatically load mgcv.
-#           - Minor improvements to code.
-#
-# 12-12-27: - The default value for "allfromsplines" parameter is now TRUE.
-#           - Added error messages for improper arguments.
-#           - Began developing black.list and white.list to
-#             replace column.skip.
-#
-# 12-12-18: - Added allfromsplines argument, which calculates strength and
-#             responsiveness from predicted spline values rather than from
-#             input female data.
-#
-# 12-12-17: - Now a "points.out" file can be made in the "diagnose" mode.
-#             It will output predicted y values for a single individual.
-#           - Fixed a bug that wouldn't output correct predicted values if
-#             smoothing parameter was changed in diagnostic function.
-#
-# 12-12-13: - Output predicted values with "points.out" and "n.predictions"
-#             arguments. File name is specified with points.out, and
-#             the number of predictions are specified with n.predictions. If
-#             n.predictions is left blank, the original x values are used.
-#
-# 12-11-20: - Added togglable "ghost" feature, which prints out new splines on
-#             top of old default splines
-#           - Minor corrections to style of script
+print("PFunc version 1.0.3 (2022-08-21) successfully loaded.")
