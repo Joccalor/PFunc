@@ -32,6 +32,7 @@ Files
 ---
 `PFunc.py` - the main file to run for the full PFunc GUI experience  
 `PFunc_RCode.R` - the supporting R code that fits the splines and extracts the useful metrics. This code *can* be run on its own in R without the GUI  
+`README.md` - important information for installing and using the program  
 `README.pdf` - important information for installing and using the program  
 `demo_data_horizontal.csv` - example data in one of two possible layouts  
 `demo_data_vertical.csv` - example data in one of two possible layouts  
@@ -73,17 +74,17 @@ or:
 
 #### 1. Install and Set Up R  
   1. Visit <https://cran.r-project.org/> and follow the links to download the latest version of R for your operating system. Install R as you would a normal program.  
-  **Note for Windows users:** The setup wizard will give you the option of installing the 32-bit files or the 64-bit files. Install both.  
-  **Note for Mac users:** As noted on the R homepage, you will need to install XQuartz <https://www.xquartz.org/>.  
-  **Note for Linux users:** You may instead install R from the command line.  
+  **For Windows users:** The setup wizard will give you the option of installing the 32-bit files or the 64-bit files. Install both.  
+  **For Mac users:** As noted on the R homepage, you will need to install XQuartz <https://www.xquartz.org/>.  
+  **For Linux users:** You may instead install R from the command line.  
 
   2. Install the mgcv package in R by opening R and entering the following command: `install.packages("mgcv")`. You will be prompted to select a mirror from which to download the package. Select an option that is relatively close to your location. Follow any instructions R gives you for installing the package.  
 
 #### 2. Install and Set Up Python  
   1. Visit <https://www.python.org/> and follow the links to download the latest version of Python 3.x for your operating system. Install Python as you would a normal program.  
   **Note:** If you run into display issues with the latest version of Python, try downloading and installing Python version 3.7.1 instead <https://www.python.org/downloads/release/python-371/>. You can tell your computer to run this specific version by using `pip3.7` and `python3.7` where appropriate in the commands below.   
-  **Note for Windows users:** the first screen of the installation wizard will ask if you want to add Python to PATH. Make sure to select this option.  
-  **Note for Linux users:** you may instead install Python from the command line.  
+  **For Windows users:** the first screen of the installation wizard will ask if you want to add Python to PATH. Make sure to select this option.  
+  **For Linux users:** you may instead install Python from the command line.  
 
   2. Install the required Python libraries (matplotlib and rpy2). To do this, open up the terminal (if you are not sure how, run a search for "terminal" or "command prompt" on your computer), and run one of the following commands.  
   **Note:** You may encounter display issues with newer versions of matplotlib. If you do, you can install version 2.0.1 instead by relpacing `matplotlib` with `matplotlib==2.0.1` in the commands below.
@@ -99,38 +100,38 @@ If the script setup described above worked for you, you can skip this section an
 Special thanks to Peter Naylor for helping us with this <https://github.com/PeterJackNaylor>.  
 
 #### 1. Install and Set Up Docker
-  1. Download and install Docker <https://docs.docker.com/engine/install/>
+  1. Download and install Docker <https://docs.docker.com/engine/install/>  
   **Note:** As part of setup, you will likely have to sign up for a (free) Docker account.  
-  **For Windows users:** You'll need to install VcXsrv <https://sourceforge.net/projects/vcxsrv/> or another similar X server.
-  **For Mac users:** Make sure XQuartz is installed (you probably did this while installing R above) <https://www.xquartz.org/>. Once installed, open XQuartz, go to Preferences > Security and tick the box that says, "allow connections from network clients."
+  **For Windows users:** You'll need to install VcXsrv <https://sourceforge.net/projects/vcxsrv/> or another similar X server.  
+  **For Mac users:** Make sure XQuartz is installed (you probably did this while installing R above) <https://www.xquartz.org/>. Once installed, open XQuartz, go to Preferences > Security and tick the box that says, "allow connections from network clients."  
 
 #### 2. Acquire the PFunc Docker image
   1. Start Docker.  
-  2. Open a terminal window (as described above in Install and Set Up Python).
-  3. Run `docker pull joccalor/pfunc:latest`
-  **For Mac and Linux users:** you may need to run this with superuser permissions, like `sudo docker pull joccalor/pfunc:latest`
-  **Note:** the Docker build file (PFunc.dockerfile) is included for those who wish to inspect it or build their own PFunc images. Everyone else can ignore this file.
+  2. Open a terminal window (as described above in Install and Set Up Python).  
+  3. Run `docker pull joccalor/pfunc:latest`  
+  **For Mac and Linux users:** you may need to run this with superuser permissions, like `sudo docker pull joccalor/pfunc:latest`  
+  **Note:** the Docker build file (PFunc.dockerfile) is included for those who wish to inspect it or build their own PFunc images. Everyone else can ignore this file.  
 
 #### 3. Run the PFunc Docker image the first time
   1. Start Docker.
-  **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.
-  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.
-  2. Get the full path for where your data files are stored. In the commands below, replace DATAPATH with that filepath.
+  **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.  
+  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.  
+  2. Get the full path for where your data files are stored. In the commands below, replace DATAPATH with that filepath.  
   **Note:** If there are spaces anywhere in your filepath, you need to surround the filepath with quotation marks.
-  3. Start up the container with the appropriate terminal command below:
-  **For Windows users:** `docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`
-  **For Mac users:** `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`
+  3. Start up the container with the appropriate terminal command below:  
+  **For Windows users:** `docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`  
+  **For Mac users:** `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -e DISPLAY=host.docker.internal:0 joccalor/pfunc:latest`  
   **For Linux users:**
-   `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -v /tmp/.X11-unix/:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY joccalor/pfunc:latest`
-  **Note:** Instead of specifying the entire filepath, you can navigate to the location of your data using the `cd` command on the command line. Then in the place of DATAPATH in the commands above, you can just write the shortcut for the current directory. In Windwos it's %CD%, and in Mac and Linux it's $PWD.
-  **Note:** You'll need to run these steps again anytime you want to specify a new location for your data on your computer.
-  **Note:** This command will name the container "PFunc". You can assign a different name by chaning what comes directly after "--name" in the command.
+   `sudo docker run --name PFunc -v DATAPATH:/root/PFunc/data -v /tmp/.X11-unix/:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY joccalor/pfunc:latest`  
+  **Note:** Instead of specifying the entire filepath, you can navigate to the location of your data using the `cd` command on the command line. Then in the place of DATAPATH in the commands above, you can just write the shortcut for the current directory. In Windwos it's %CD%, and in Mac and Linux it's $PWD.  
+  **Note:** You'll need to run these steps again anytime you want to specify a new location for your data on your computer.  
+  **Note:** This command will name the container "PFunc". You can assign a different name by chaning what comes directly after "--name" in the command.  
 
 #### 4. Start an existing the PFunc Docker container
-  1. Start Docker.
-  **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.
-  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.
-  2. Start the PFunc container either from the Docker UI or from the command line with `docker start PFunc` (or if you gave your container a different name, replace "PFunc" with that name).
+  1. Start Docker.  
+  **For Mac users:** Start XQuartz as well. Then in a terminal, run: `xhost +`, or if that doesn't seem to be working, try `xhost + 127.0.0.1` instead.  
+  **For Windows users:** Start VcXsrv as well (it'll be somewhere like c:\Program Files\VcXsrv\xlaunch.exe). If it asks, you can tell it to display in multiple windows and to start no client.  
+  2. Start the PFunc container either from the Docker UI or from the command line with `docker start PFunc` (or if you gave your container a different name, replace "PFunc" with that name).  
 
 Usage
 ---
