@@ -329,7 +329,7 @@ class GraphArea(Frame):
         self.instruction_text = self.welcome_canvas.create_text(
             275, 275, text='Open a data file to begin.',
             font=('Helvetica', 12))
-        self.copyright_text1 = 'Copyright (C) 2016, 2017 Joseph Kilmer'
+        self.copyright_text1 = 'Copyright (C) 2016-2022 Joseph Kilmer'
         self.copyright_text2 = ('PFunc is distributed under the GNU General '
                                 'Public License v3. See About in the Help '
                                 'menu for a summary of GPLv3.\nTo view the '
@@ -1852,8 +1852,8 @@ class AboutWindow(PFuncToplevel):
         self.title_text = 'PFunc'
         self.subtitle_text = ('A tool for analyzing preference functions and '
                               'other function-valued traits.\n')
-        self.version_text = 'version 1.0.0 \n (2017-05-18)\n'
-        self.copyright_text = ('Copyright (C) 2016, 2017 Joseph Kilmer \n\n'
+        self.version_text = 'version 1.0.3 \n (2022-08-21)\n'
+        self.copyright_text = ('Copyright (C) 2016-2022 Joseph Kilmer \n\n'
                                'PFunc is distributed under the GNU General '
                                'Public License v3. A full copy of\n'
                                'the license is available in the accompanying '
